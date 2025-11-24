@@ -1,3 +1,7 @@
+DEVS: WHEN MAKING A FEATURE, OPEN A PR TO THE WORKING BRANCH AND THEN RESOLVE ALL ISSUES OUTLINED BY CUBIC/OTHER REVIEWERS!
+
+---
+
 # becathlon-mobile
 
 > A Flutter-powered mobile storefront backed by a Django REST API, inspired by Decathlon’s polished browsing experience but lightweight. 
