@@ -41,15 +41,6 @@ The mobile app transforms the traditional browsing and buying experience into a 
 * **Mobile Order Tracking**: View order history and live order status directly in the app
 * **Personalized Platform**: Saved preferences and recommended products tailored to the user
 
-**For Administrators (Backend):**
-
-* **Full System Control** via the Django admin dashboard:
-
-  * Manage inventory, categories, and product data
-  * Handle returns, sales, and customer accounts
-  * Maintain store location data
-* Web dashboard and mobile app stay in sync through shared APIs
-
 **For Developers:**
 
 * **Modern Cross-Platform Stack**: Built using Flutter and Dart, following clean development patterns
@@ -94,7 +85,11 @@ The mobile app transforms the traditional browsing and buying experience into a 
 
 | Role                  | Description                                                  | Permissions                                                                                                                                                                                                                                                                      | Relevant App Modules                                                                                                                                                                                                                          |
 | --------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Guest / Visitor**   | Unregistered users exploring the app.                        | - Browse products and categories<br>- Search and apply filters<br>- Add items to a temporary cart<br>- View product details and read limited reviews                                                                                                                             | `Home & Navigation` (landing pages)<br>`Catalog` (product listings & details)<br>`Search` (search & filtering)<br>`Cart` (local-only cart state)<br>`Recommendations` (basic suggestions)                                                     |
+| **Guest / Visitor (DEPRECATED)**   | Unregistered users exploring the app.                        | - Browse products and categories<br>- Search and apply filters<br>- Add items to a temporary cart<br>- View product details and read limited reviews                                                                                                                             | `Home & Navigation` (landing pages)<br>`Catalog` (product listings & details)<br>`Search` (search & filtering)<br>`Cart` (local-only cart state)<br>`Recommendations` (basic suggestions)                                                     |
 | **Client / Customer** | Registered app users with an account.                        | - Everything a guest can do<br>- Login and manage account<br>- Save delivery addresses & preferences<br>- Add to persistent cart (stored via API)<br>- Order and checkout flow<br>- Track order status<br>- Submit reviews and ratings<br>- Receive personalized recommendations | `Authentication` (login, registration)<br>`Profiles` (user info & settings)<br>`Cart` (sync persistent cart)<br>`Checkout` (payment & order placement)<br>`Orders` (order history & tracking)<br>`Recommendations` (personalized suggestions) |
 | **Administrator**     | Backend administrators managing the system via Django Admin. | - Manage users, roles, and authentication<br>- Add/update/remove products<br>- Configure store locations, inventory, payments, and shipping<br>- Review analytics and reports<br>- Moderate user content and refund claims                                                       | Managed through the **Django backend**, reflected in the mobile app via API:<br>- Users & roles<br>- Product catalog & categories<br>- Orders & refunds<br>- Store locations<br>- Platform configuration                                      |
+## Integration with Django backend
+We will use either `PBP Django Auth` module or a traditional REST API with headers to connect the Flutter app with Django backend.
 
+## Figma link
+https://www.figma.com/design/xWpRGL6SgHgsW7Y6BYiWOZ/pbp-finals-flutter?node-id=0-1&t=u8pmiO4Ukd0PyZXP-1
