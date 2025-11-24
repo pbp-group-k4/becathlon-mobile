@@ -1,99 +1,241 @@
-DEVS: WHEN MAKING A FEATURE, OPEN A PR TO THE WORKING BRANCH AND THEN RESOLVE ALL ISSUES OUTLINED BY CUBIC/OTHER REVIEWERS!
+# Becathlon Mobile - Flutter E-Commerce Prototype
 
----
+A Flutter mobile application prototype for the Becathlon sports equipment e-commerce platform, featuring authentication, product catalog browsing, shopping cart management, and user profiles. This app connects to a Django backend via REST API.
 
-# becathlon-mobile
+## Features
 
-> A Flutter-powered mobile storefront backed by a Django REST API, inspired by Decathlon’s polished browsing experience but lightweight. 
-Features include responsive product grids, fast search, filters, and a simplified checkout flow, all optimized for speed and usability.
+### ✅ Implemented
+- **Authentication**
+  - User login with Django backend integration
+  - User registration
+  - Session management with cookies
+  - Logout functionality
 
-## Team Members
+- **Product Catalog**
+  - Browse all products in a grid layout
+  - Search products by name or category
+  - View detailed product information
+  - Product images, prices, stock availability, and ratings
 
-- Muhammad Adra Prakoso – Backend developer / 2406453530
-- Berguegou Briana Yadjam – 2506561555
-- Zahran Musyaffa Ramadhan Mulya – 2406365401
-- Gunata Prajna Putra Sakri – 2406453461
-- Muhammad Vegard Fathul Islam – 2406365332
-- Kent Wilbert Wijaya
+- **Shopping Cart**
+  - Add products to cart
+  - Update item quantities
+  - Remove items from cart
+  - View cart total and item count
+  - Cart state management with Provider
 
-## Application Story & Benefits (Mobile App)
+- **User Profile**
+  - View user information
+  - Access to menu items (orders, wishlist, settings)
+  - Logout functionality
 
-### What is Becathlon Mobile?
+- **Modern UI/UX**
+  - Gradient backgrounds and glassmorphism effects
+  - Bottom navigation for easy access
+  - Pull-to-refresh on product lists
+  - Smooth animations and transitions
+  - Material 3 design system
 
-*Becathlon Mobile* is a Flutter-powered e-commerce application that brings the multisport shopping experience directly to your smartphone. 
-Inspired by Decathlon’s clean user experience and comprehensive product catalog, the app recreates a modern sports retail journey while serving as a practical learning project for full-stack mobile development.
+### 🚧 Coming Soon
+- Checkout and payment integration
+- Order history and tracking
+- Product recommendations
+- Store locator with maps
+- Wishlist functionality
 
-### The Story
+## Tech Stack
 
-In today’s mobile-first world, shoppers expect fast, intuitive, and personalized experiences, 
-especially when choosing equipment for their sport. Whether someone is a casual runner, a gym enthusiast, or a professional climber, Becathlon Mobile aims to make discovering and purchasing sports gear effortless, engaging, and available anywhere.
+- **Frontend**: Flutter 3.x
+- **State Management**: Provider
+- **Backend Integration**: Django REST API
+- **Authentication**: pbp_django_auth package
+- **HTTP Client**: http package
+- **UI**: Material 3, Google Fonts
 
-The mobile app transforms the traditional browsing and buying experience into a portable digital journey, offering:
+## Prerequisites
 
-* **Full Product Catalog**: Browse sports equipment and categories anytime, anywhere
-* **Personalized Recommendations**: Tailored product suggestions based on user preferences and history
-* **Optimized Shopping Flow**: From browsing to checkout, every step is streamlined for small screens
-* **Store Integration**: Locate physical stores when users want in-person shopping or product trials
+- Flutter SDK (3.0 or higher)
+- Android Studio / VS Code with Flutter extensions
+- Android Emulator or physical device
+- Django backend running (see backend setup below)
 
-### Key Benefits
+## Installation
 
-**For Customers:**
+1. **Clone or navigate to the project directory**
+   ```bash
+   cd becathlon_mobile
+   ```
 
-* **Fast, Smooth Navigation**: Mobile-optimized UI with easy browsing and filtering
-* **Rich Product Experience**: High-quality visuals, detailed descriptions, and informed purchasing
-* **Smart Shopping Tools**: Add to cart, adjust quantities, compare, and make decisions easily
-* **Mobile Order Tracking**: View order history and live order status directly in the app
-* **Personalized Platform**: Saved preferences and recommended products tailored to the user
+2. **Install dependencies**
+   ```bash
+   flutter pub get
+   ```
 
-**For Developers:**
+3. **Update Django backend URL**
+   Edit the following files and replace `http://10.0.2.2:8000` with your Django backend URL:
+   - `lib/services/product_service.dart` (line 9)
+   - `lib/screens/auth/login.dart` (line 120)
+   - `lib/screens/auth/register.dart` (line 151)
+   - `lib/screens/profile/profile.dart` (line 118)
 
-* **Modern Cross-Platform Stack**: Built using Flutter and Dart, following clean development patterns
-* **Modular and Scalable**: Organized architecture ready for future enhancements
-* **API-Driven**: Demonstrates real mobile-to-backend communication with Django REST
-* **Learning Friendly**: Ideal for practicing mobile UI/UX, state management, API integration, and architecture
+   **Note**: 
+   - For Android emulator: Use `http://10.0.2.2:8000`
+   - For iOS simulator: Use `http://localhost:8000` or `http://127.0.0.1:8000`
+   - For physical device: Use your computer's IP address (e.g., `http://192.168.1.100:8000`)
 
-### App Flow
+4. **Run the app**
+   ```bash
+   flutter run
+   ```
 
-**For Guest Users:** Users can open the app, browse categories, scroll through products, search with filters, view details, add items to cart, or explore nearby stores. Checkout and order placement require a login.
+## Django Backend Setup
 
-**For Registered Users:** After logging in, users can:
+Your Django backend should have the following endpoints:
 
-* Browse featured and recommended items
-* Search and filter the catalog
-* View detailed product pages
-* Add items to cart and manage quantities
-* Proceed through a quick checkout experience
-* Place orders and get confirmation
-* Track order status in real time
-* Update profile and preferences
+### Authentication Endpoints
+- `POST /auth/login/` - User login
+  - Request: `{ "username": "...", "password": "..." }`
+  - Response: `{ "status": true, "message": "...", "username": "..." }`
 
-**For Admins:** Product, order, user, and store management continues via the Django admin panel, with all changes reflected in the mobile app through the API.
+- `POST /auth/register/` - User registration
+  - Request: `{ "username": "...", "password": "...", "password2": "..." }`
+  - Response: `{ "status": true/false, "message": "..." }`
 
+- `POST /auth/logout/` - User logout
+  - Response: `{ "status": true, "message": "..." }`
 
-## Modules (Flutter)
+### Product Endpoints
+- `GET /api/products/` - Get all products
+  - Response: Array of product objects
+- `GET /api/products/<id>/` - Get single product
+- `GET /api/products/?category=<category>` - Filter by category
+- `GET /api/products/?search=<query>` - Search products
 
-| Module          | Location / Components                                                                                               | Purpose                                                                 |
-| --------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Core / Home     | `lib/main.dart`, `lib/screens/home/`, `lib/widgets/common/`, `lib/navigation/`                                      | App entry point, navigation, homepage, about screen, shared UI elements |
-| Authentication  | `lib/screens/auth/`, `lib/services/auth_service.dart`, `lib/models/user.dart`, `lib/widgets/auth/`                  | User login, registration, logout, token/session handling                |
-| Catalog         | `lib/screens/catalog/`, `lib/models/product.dart`, `lib/services/product_service.dart`, `assets/data/products.json` | Product listing, categories, product detail pages                       |
-| Search          | `lib/screens/search/`, `lib/services/search_service.dart`                                                           | Search UI and filtering logic                                           |
-| Cart            | `lib/screens/cart/`, `lib/providers/cart_provider.dart`, `lib/models/cart_item.dart`                                | Manage shopping cart state, add/remove items                            |
-| Checkout        | `lib/screens/checkout/`, `lib/services/payment_service.dart`, `lib/widgets/checkout/`                               | Mock checkout workflow and order confirmation                           |
-| Orders          | `lib/screens/orders/`, `lib/models/order.dart`, `lib/services/order_service.dart`                                   | Order history, mock refund handling                                     |
-| Store Locator   | `lib/screens/stores/`, `lib/models/store.dart`, `lib/services/store_service.dart`, `assets/data/stores.json`        | Store locator with mock map/location data                               |
-| Recommendations | `lib/screens/recommendations/`, `lib/services/recommendation_service.dart`                                          | Product recommendations logic and UI                                    |
-| Profiles        | `lib/screens/profile/`, `lib/models/profile.dart`, `lib/services/profile_service.dart`, `lib/widgets/profile/`      | User account management, settings, saved preferences                    |
+### Product JSON Format
+Products should follow this structure:
+```json
+{
+  "pk": "1",
+  "fields": {
+    "name": "Product Name",
+    "description": "Product description",
+    "price": 99.99,
+    "category": "Category",
+    "image": "image_url",
+    "stock": 10,
+    "rating": 4.5
+  }
+}
+```
 
-## User Roles
+Or simplified format:
+```json
+{
+  "id": "1",
+  "name": "Product Name",
+  "description": "Product description",
+  "price": 99.99,
+  "category": "Category",
+  "image": "image_url",
+  "stock": 10,
+  "rating": 4.5
+}
+```
 
-| Role                  | Description                                                  | Permissions                                                                                                                                                                                                                                                                      | Relevant App Modules                                                                                                                                                                                                                          |
-| --------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Guest / Visitor (DEPRECATED)**   | Unregistered users exploring the app.                        | - Browse products and categories<br>- Search and apply filters<br>- Add items to a temporary cart<br>- View product details and read limited reviews                                                                                                                             | `Home & Navigation` (landing pages)<br>`Catalog` (product listings & details)<br>`Search` (search & filtering)<br>`Cart` (local-only cart state)<br>`Recommendations` (basic suggestions)                                                     |
-| **Client / Customer** | Registered app users with an account.                        | - Everything a guest can do<br>- Login and manage account<br>- Save delivery addresses & preferences<br>- Add to persistent cart (stored via API)<br>- Order and checkout flow<br>- Track order status<br>- Submit reviews and ratings<br>- Receive personalized recommendations | `Authentication` (login, registration)<br>`Profiles` (user info & settings)<br>`Cart` (sync persistent cart)<br>`Checkout` (payment & order placement)<br>`Orders` (order history & tracking)<br>`Recommendations` (personalized suggestions) |
-| **Administrator**     | Backend administrators managing the system via Django Admin. | - Manage users, roles, and authentication<br>- Add/update/remove products<br>- Configure store locations, inventory, payments, and shipping<br>- Review analytics and reports<br>- Moderate user content and refund claims                                                       | Managed through the **Django backend**, reflected in the mobile app via API:<br>- Users & roles<br>- Product catalog & categories<br>- Orders & refunds<br>- Store locations<br>- Platform configuration                                      |
-## Integration with Django backend
-We will use either `PBP Django Auth` module or a traditional REST API with headers to connect the Flutter app with Django backend.
+### Django CORS Configuration
 
-## Figma link
-https://www.figma.com/design/xWpRGL6SgHgsW7Y6BYiWOZ/pbp-finals-flutter?node-id=0-1&t=u8pmiO4Ukd0PyZXP-1
+Add these to your Django `settings.py`:
+
+```python
+INSTALLED_APPS = [
+    ...
+    'corsheaders',
+    ...
+]
+
+MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    ...
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'
+
+ALLOWED_HOSTS = [..., '10.0.2.2']
+```
+
+## Project Structure
+
+```
+lib/
+├── main.dart                 # App entry point with providers
+├── models/                   # Data models
+│   ├── user.dart
+│   ├── product.dart
+│   └── cart_item.dart
+├── services/                 # API services
+│   └── product_service.dart
+├── providers/                # State management
+│   └── cart_provider.dart
+├── screens/                  # UI screens
+│   ├── auth/
+│   │   ├── login.dart
+│   │   └── register.dart
+│   ├── home/
+│   │   └── home.dart
+│   ├── catalog/
+│   │   ├── catalog.dart
+│   │   └── product_detail.dart
+│   ├── cart/
+│   │   └── cart.dart
+│   └── profile/
+│       └── profile.dart
+└── widgets/                  # Reusable widgets
+    └── common/
+```
+
+## Usage
+
+1. **Login/Register**: Start by logging in with existing credentials or create a new account
+2. **Browse Products**: Navigate to the Catalog tab to view all products
+3. **Search**: Use the search bar to find specific products
+4. **View Details**: Tap on any product to see detailed information
+5. **Add to Cart**: Add items to your cart from the catalog or product detail page
+6. **Manage Cart**: View and edit your cart in the Cart tab
+7. **Profile**: Access your profile and logout from the Profile tab
+
+## Troubleshooting
+
+### Cannot connect to Django backend
+- Ensure Django server is running
+- Check that you're using the correct IP address
+- For Android emulator, use `10.0.2.2` instead of `localhost`
+- Verify CORS settings in Django
+
+### Build errors
+Run `flutter clean` then `flutter pub get`
+
+### Deprecation warnings
+The app uses some methods with deprecation warnings (like `withOpacity`), but these don't affect functionality. They will be updated in future releases.
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is created for educational purposes as part of the PBP (Platform-Based Programming) course.
+
+## Acknowledgments
+
+- PBP Teaching Team for the integration tutorial
+- Flutter team for the excellent framework
+- Django team for the robust backend framework
