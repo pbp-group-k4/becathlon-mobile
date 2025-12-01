@@ -1,3 +1,4 @@
+import 'package:becathlon_mobile/screens/stores/store.dart';
 import 'package:flutter/material.dart';
 
 
@@ -24,6 +25,7 @@ class _HomePageState extends State<HomePage> {
     CatalogPage(),
     CartPage(),
     ProfilePage(),
+    StoreLocatorScreen(),
   ];
 
   @override
@@ -56,6 +58,10 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.store_mall_directory),
+            label: 'Stores',
           ),
         ],
       ),

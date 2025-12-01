@@ -38,6 +38,8 @@ dependencies:
   pbp_django_auth: ^0.4.0
   http: ^1.6.0
   google_fonts: ^6.3.2
+  lucide_icons_flutter: ^3.1.6
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
