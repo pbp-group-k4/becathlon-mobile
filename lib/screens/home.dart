@@ -5,6 +5,9 @@ import '../models/product.dart';
 import '../utils/constants.dart';
 import '../widgets/product_card.dart';
 import 'login.dart';
+import 'cart_screen.dart';
+import 'order_list_screen.dart';
+import 'product_detail_screen.dart';
 
 /// Home page with product grid display
 /// 
@@ -239,102 +242,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
   
-  /// Handle product tap - show detail dialog for now
+  /// Handle product tap - navigate to detail screen
   void _handleProductTap(Product product) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(product.name),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (product.image.isNotEmpty)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    product.image,
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 200,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.image_not_supported, size: 48),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 16),
-              Text(
-                product.brand.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[600],
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                product.formattedPrice,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.star, size: 18, color: Colors.amber),
-                  const SizedBox(width: 4),
-                  Text(product.rating),
-                  const SizedBox(width: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: product.isInStock ? Colors.green[50] : Colors.red[50],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      product.isInStock ? 'In Stock (${product.stock})' : 'Out of Stock',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: product.isInStock ? Colors.green[700] : Colors.red[700],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Description',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[800],
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                product.description.isNotEmpty 
-                    ? product.description 
-                    : 'No description available.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailScreen(product: product),
       ),
     );
   }
@@ -353,6 +266,26 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            tooltip: 'Cart',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.receipt_long),
+            tooltip: 'My Orders',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const OrderListScreen()),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
             onPressed: _handleLogout,
@@ -363,7 +296,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           // Search and Filter Section
           Container(
-            color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+            color: Theme.of(context).primaryColor.withOpacity(0.05),
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
@@ -414,7 +347,7 @@ class _HomePageState extends State<HomePage> {
                               padding: const EdgeInsets.symmetric(horizontal: 12),
                               decoration: BoxDecoration(
                                 color: _selectedCategory != null
-                                    ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
+                                    ? Theme.of(context).primaryColor.withOpacity(0.1)
                                     : Colors.white,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
