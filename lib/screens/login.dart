@@ -62,27 +62,27 @@ class _LoginPageState extends State<LoginPage> {
         String uname = response['username'] ?? _usernameController.text;
         
         if (context.mounted) {
+          // Capture ScaffoldMessenger before navigation to avoid using disposed context
+          final scaffoldMessenger = ScaffoldMessenger.of(context);
+
           // If this login page was opened from another screen (e.g., ProductDetailScreen),
           // return true to indicate success instead of navigating
           if (Navigator.canPop(context)) {
             Navigator.pop(context, true); // Return true to caller
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                SnackBar(content: Text('$message Welcome, $uname.')),
-              );
           } else {
             // If this is the initial/root login screen, navigate to HomePage
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const HomePage()),
             );
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                SnackBar(content: Text('$message Welcome, $uname.')),
-              );
           }
+
+          // Show snackbar using the captured ScaffoldMessenger
+          scaffoldMessenger
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(content: Text('$message Welcome, $uname.')),
+            );
         }
       } else {
         // Login failed
