@@ -20,6 +20,23 @@ class ApiConstants {
   static const String productsEndpoint = '$baseUrl/catalog/mobile/products/';
   static const String categoriesEndpoint = '$baseUrl/catalog/mobile/categories/';
   
+  // Cart Endpoints
+  static const String cartEndpoint = '$baseUrl/cart/flutter/';
+  static const String cartCountEndpoint = '$baseUrl/cart/flutter/count/';
+  static const String cartClearEndpoint = '$baseUrl/cart/flutter/clear/';
+  
+  static String addToCartEndpoint(int productId) => '$baseUrl/cart/flutter/add/$productId/';
+  static String updateCartItemEndpoint(int itemId) => '$baseUrl/cart/flutter/update/$itemId/';
+  static String removeCartItemEndpoint(int itemId) => '$baseUrl/cart/flutter/remove/$itemId/';
+  
+  // Order Endpoints
+  static const String checkoutEndpoint = '$baseUrl/order/flutter/checkout/';
+  static const String orderListEndpoint = '$baseUrl/order/flutter/list/';
+  
+  static String orderDetailEndpoint(int orderId) => '$baseUrl/order/flutter/$orderId/';
+  static String orderStatusEndpoint(int orderId) => '$baseUrl/order/flutter/$orderId/status/';
+  static String submitRatingEndpoint(int orderId) => '$baseUrl/order/flutter/$orderId/rate/';
+  
   /// Get product detail endpoint for a specific product ID
   static String productDetailEndpoint(int productId) {
     return '$baseUrl/catalog/mobile/products/$productId/';

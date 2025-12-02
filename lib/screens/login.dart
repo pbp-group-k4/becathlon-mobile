@@ -53,16 +53,32 @@ class _LoginPageState extends State<LoginPage> {
 
       // Check if login was successful
       if (response['status'] == true) {
+        // FIX: Manually set loggedIn since postJson() doesn't do this
+        // (postJson only handles cookies but doesn't set the loggedIn flag)
+        request.loggedIn = true;
+        
         // Login successful
         String message = response['message'] ?? 'Login successful!';
         String uname = response['username'] ?? _usernameController.text;
         
         if (context.mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
-          ScaffoldMessenger.of(context)
+          // Capture ScaffoldMessenger before navigation to avoid using disposed context
+          final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+          // If this login page was opened from another screen (e.g., ProductDetailScreen),
+          // return true to indicate success instead of navigating
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context, true); // Return true to caller
+          } else {
+            // If this is the initial/root login screen, navigate to HomePage
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          }
+
+          // Show snackbar using the captured ScaffoldMessenger
+          scaffoldMessenger
             ..hideCurrentSnackBar()
             ..showSnackBar(
               SnackBar(content: Text('$message Welcome, $uname.')),
