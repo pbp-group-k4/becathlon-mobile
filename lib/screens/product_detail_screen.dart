@@ -30,6 +30,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       if (result != true) return; // User didn't login
     }
 
+    if (!mounted) return;
+
     setState(() {
       _isAddingToCart = true;
     });
