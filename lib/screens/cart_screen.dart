@@ -178,7 +178,12 @@ class _CartScreenState extends State<CartScreen> {
                                   padding: const EdgeInsets.only(right: 20),
                                   child: const Icon(Icons.delete, color: Colors.white),
                                 ),
-                                onDismissed: (_) => _removeItem(item),
+                                onDismissed: (_) {
+                                  setState(() {
+                                    _cartItems.removeAt(index);
+                                  });
+                                  _removeItem(item);
+                                },
                                 confirmDismiss: (_) async {
                                   return await showDialog(
                                     context: context,
