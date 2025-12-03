@@ -6,10 +6,10 @@ library;
 
 class ApiConstants {
   // Development Base URL (localhost Django server)
-  static const String baseUrl = 'http://127.0.0.1:8000';
+  //static const String baseUrl = 'http://127.0.0.1:8000';
   
   // Production Base URL (commented out - deployment broken)
-  // static const String baseUrl = 'https://muhammad-vegard-becathlon.pbp.cs.ui.ac.id';
+  static const String baseUrl = 'https://muhammad-vegard-becathlon.pbp.cs.ui.ac.id';
   
   // Authentication Endpoints
   static const String loginEndpoint = '$baseUrl/auth/flutter/login/';
