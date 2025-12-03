@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import '../utils/constants.dart';
+import '../utils/styles.dart';
 import 'order_list_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -25,7 +26,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
   final _postalCodeController = TextEditingController();
-  
+
   String _selectedCountry = 'Indonesia';
   String _selectedPaymentMethod = 'CREDIT_CARD';
 
@@ -34,7 +35,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     'Malaysia',
     'Singapore',
     'Thailand',
-    'Philippines'
+    'Philippines',
   ];
 
   final Map<String, String> _paymentMethods = {
@@ -64,7 +65,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
 
     final request = context.read<CookieRequest>();
-    
+
     try {
       final response = await request.postJson(
         ApiConstants.checkoutEndpoint,
@@ -85,12 +86,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       if (response['status'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Order placed successfully!'),
-            backgroundColor: Colors.green,
-          ),
+          AppWidgets.successSnackBar('Order placed successfully!'),
         );
-        
+
         // Navigate to Order List and remove all previous routes (Cart, Checkout)
         Navigator.pushAndRemoveUntil(
           context,
@@ -103,21 +101,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           final errors = response['errors'] as Map;
           errorMessage += '\n${errors.values.join('\n')}';
         }
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-          ),
-        );
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(AppWidgets.errorSnackBar(errorMessage));
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('An error occurred. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
+        AppWidgets.errorSnackBar('An error occurred. Please try again.'),
       );
     } finally {
       if (mounted) {
@@ -131,20 +123,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Checkout'),
-      ),
+      appBar: AppBar(title: Text('Checkout', style: AppTextStyles.appBarTitle)),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const Text(
-              'Shipping Address',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            Text('Shipping Address', style: AppTextStyles.headingMedium),
             const SizedBox(height: 16),
-            
+
             // Full Name
             TextFormField(
               controller: _fullNameController,
@@ -154,12 +141,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 prefixIcon: Icon(Icons.person),
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) return 'Please enter your name';
+                if (value == null || value.isEmpty)
+                  return 'Please enter your name';
                 return null;
               },
             ),
             const SizedBox(height: 16),
-            
+
             // Phone Number
             TextFormField(
               controller: _phoneController,
@@ -170,12 +158,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               keyboardType: TextInputType.phone,
               validator: (value) {
-                if (value == null || value.isEmpty) return 'Please enter phone number';
+                if (value == null || value.isEmpty)
+                  return 'Please enter phone number';
                 return null;
               },
             ),
             const SizedBox(height: 16),
-            
+
             // Address Line 1
             TextFormField(
               controller: _address1Controller,
@@ -185,12 +174,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 prefixIcon: Icon(Icons.home),
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) return 'Please enter address';
+                if (value == null || value.isEmpty)
+                  return 'Please enter address';
                 return null;
               },
             ),
             const SizedBox(height: 16),
-            
+
             // Address Line 2
             TextFormField(
               controller: _address2Controller,
@@ -201,7 +191,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // City & State
             Row(
               children: [
@@ -231,7 +221,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Postal Code & Country
             Row(
               children: [
@@ -252,7 +242,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _selectedCountry,
+                    initialValue: _selectedCountry,
                     decoration: const InputDecoration(
                       labelText: 'Country',
                       border: OutlineInputBorder(),
@@ -275,49 +265,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ],
             ),
             const SizedBox(height: 32),
-            
-            const Text(
-              'Payment Method',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+
+            Text('Payment Method', style: AppTextStyles.headingMedium),
             const SizedBox(height: 16),
-            
+
             // Payment Methods
-            ..._paymentMethods.entries.map((entry) => RadioListTile<String>(
-              title: Text(entry.value),
-              value: entry.key,
-              groupValue: _selectedPaymentMethod,
-              onChanged: (String? value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedPaymentMethod = value;
-                  });
-                }
-              },
-              activeColor: Theme.of(context).primaryColor,
-              contentPadding: EdgeInsets.zero,
-            )),
-            
+            ..._paymentMethods.entries.map(
+              (entry) => RadioListTile<String>(
+                title: Text(entry.value, style: AppTextStyles.bodyPrimary),
+                value: entry.key,
+                groupValue: _selectedPaymentMethod,
+                onChanged: (String? value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedPaymentMethod = value;
+                    });
+                  }
+                },
+                activeColor: AppColors.accentGold,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+
             const SizedBox(height: 32),
-            
+
             // Submit Button
             SizedBox(
               height: 50,
               child: ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitOrder,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
                 child: _isSubmitting
                     ? const SizedBox(
                         height: 24,
                         width: 24,
                         child: CircularProgressIndicator(
-                          color: Colors.white,
+                          color: AppColors.primaryBlack,
                           strokeWidth: 2,
                         ),
                       )

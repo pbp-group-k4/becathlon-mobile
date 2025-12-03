@@ -5,7 +5,8 @@ class CartItem {
   final int quantity;
   final double price;
   final double subtotal;
-  final String? imageUrl; // Optional, might not be in all responses but useful if available
+  final String?
+  imageUrl; // Optional, might not be in all responses but useful if available
 
   CartItem({
     required this.id,
@@ -28,7 +29,7 @@ class CartItem {
       imageUrl: json['image_url'] as String?,
     );
   }
-  
+
   String get formattedPrice => '\$${price.toStringAsFixed(2)}';
   String get formattedSubtotal => '\$${subtotal.toStringAsFixed(2)}';
 }

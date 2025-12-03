@@ -5,6 +5,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import '../models/order.dart';
 import '../utils/constants.dart';
+import '../utils/styles.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final int orderId;
@@ -34,7 +35,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     try {
       final request = context.read<CookieRequest>();
-      final response = await request.get(ApiConstants.orderDetailEndpoint(widget.orderId));
+      final response = await request.get(
+        ApiConstants.orderDetailEndpoint(widget.orderId),
+      );
 
       if (!mounted) return;
 
@@ -61,14 +64,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Future<void> _refreshStatus() async {
     final request = context.read<CookieRequest>();
     try {
-      final response = await request.get(ApiConstants.orderStatusEndpoint(widget.orderId));
-      
+      final response = await request.get(
+        ApiConstants.orderStatusEndpoint(widget.orderId),
+      );
+
       if (!mounted) return;
-      
+
       if (response['status'] == true) {
         // Reload full order to update UI
         _loadOrderDetail();
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Status: ${response['delivery_status_display']}'),
@@ -99,7 +104,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   return IconButton(
                     icon: Icon(
                       index < rating ? Icons.star : Icons.star_border,
-                      color: Colors.amber,
+                      color: AppColors.accentGold,
                       size: 32,
                     ),
                     onPressed: () => setState(() => rating = index + 1),
@@ -125,7 +130,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
-                await _submitRating(item.productId, rating, reviewController.text);
+                await _submitRating(
+                  item.productId,
+                  rating,
+                  reviewController.text,
+                );
               },
               child: const Text('Submit'),
             ),
@@ -151,24 +160,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
       if (response['status'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Rating submitted successfully!'),
-            backgroundColor: Colors.green,
-          ),
+          AppWidgets.successSnackBar('Rating submitted successfully!'),
         );
         _loadOrderDetail(); // Reload to update rated status
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response['message'] ?? 'Failed to submit rating'),
-            backgroundColor: Colors.red,
+          AppWidgets.errorSnackBar(
+            response['message'] ?? 'Failed to submit rating',
           ),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error submitting rating')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Error submitting rating')));
     }
   }
 
@@ -176,29 +181,28 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Order Details')),
-        body: const Center(child: CircularProgressIndicator()),
+        appBar: AppBar(
+          title: Text('Order Details', style: AppTextStyles.appBarTitle),
+        ),
+        body: AppWidgets.loadingIndicator(message: 'Loading order...'),
       );
     }
 
     if (_error != null || _order == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Order Details')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(_error ?? 'Order not found', style: const TextStyle(color: Colors.red)),
-              ElevatedButton(onPressed: _loadOrderDetail, child: const Text('Retry')),
-            ],
-          ),
+        appBar: AppBar(
+          title: Text('Order Details', style: AppTextStyles.appBarTitle),
+        ),
+        body: AppWidgets.errorState(
+          message: _error ?? 'Order not found',
+          onRetry: _loadOrderDetail,
         ),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order #${_order!.id}'),
+        title: Text('Order #${_order!.id}', style: AppTextStyles.appBarTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -221,7 +225,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Status', style: TextStyle(color: Colors.grey)),
+                        Text('Status', style: AppTextStyles.bodySecondary),
                         Text(
                           _order!.status,
                           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -232,14 +236,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Delivery', style: TextStyle(color: Colors.grey)),
+                        Text('Delivery', style: AppTextStyles.bodySecondary),
                         Text(
-                          _order!.deliveryStatusDisplay.isNotEmpty 
-                              ? _order!.deliveryStatusDisplay 
+                          _order!.deliveryStatusDisplay.isNotEmpty
+                              ? _order!.deliveryStatusDisplay
                               : 'Pending',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue,
+                            color: AppColors.accentBlue,
                           ),
                         ),
                       ],
@@ -252,10 +256,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
             // Shipping Address
             if (_order!.shippingAddress != null) ...[
-              const Text(
-                'Shipping Address',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+              Text('Shipping Address', style: AppTextStyles.headingMedium),
               const SizedBox(height: 8),
               Card(
                 child: Padding(
@@ -279,10 +280,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ],
 
             // Order Items
-            const Text(
-              'Items',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            Text('Items', style: AppTextStyles.headingMedium),
             const SizedBox(height: 8),
             ListView.separated(
               shrinkWrap: true,
@@ -292,7 +290,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               itemBuilder: (context, index) {
                 final item = _order!.items![index];
                 final isDelivered = _order!.deliveryStatus == 'DELIVERED';
-                final hasRated = _order!.ratedProductIds?.contains(item.productId) ?? false;
+                final hasRated =
+                    _order!.ratedProductIds?.contains(item.productId) ?? false;
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
@@ -304,7 +303,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: Colors.grey[200],
+                          color: AppColors.accentGray,
                           borderRadius: BorderRadius.circular(8),
                           image: item.imageUrl.isNotEmpty
                               ? DecorationImage(
@@ -322,7 +321,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           children: [
                             Text(
                               item.productName,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text('${item.quantity} x ${item.formattedPrice}'),
@@ -352,8 +353,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               padding: EdgeInsets.only(top: 4),
                               child: Row(
                                 children: [
-                                  Icon(Icons.check, size: 14, color: Colors.green),
-                                  Text('Rated', style: TextStyle(color: Colors.green, fontSize: 12)),
+                                  Icon(
+                                    Icons.check,
+                                    size: 14,
+                                    color: AppColors.successGreen,
+                                  ),
+                                  Text(
+                                    'Rated',
+                                    style: TextStyle(
+                                      color: AppColors.successGreen,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -370,17 +381,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Total Amount',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  Text('Total Amount', style: AppTextStyles.headingMedium),
                   Text(
                     _order!.formattedTotalPrice,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
-                    ),
+                    style: AppTextStyles.productPrice.copyWith(fontSize: 20),
                   ),
                 ],
               ),

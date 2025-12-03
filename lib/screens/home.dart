@@ -3,6 +3,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../utils/constants.dart';
+import '../utils/styles.dart';
 import '../widgets/product_card.dart';
 import 'login.dart';
 import 'cart_screen.dart';
@@ -11,14 +12,6 @@ import 'product_detail_screen.dart';
 import 'profile_screen.dart';
 
 /// Home page with product grid display
-/// 
-/// Features:
-/// - Product grid with 2-column layout
-/// - Search bar for filtering products
-/// - Category filter chips
-/// - Sort options
-/// - Pull-to-refresh
-/// - Logout functionality
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -27,76 +20,68 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // State variables
   List<Product> _products = [];
   List<String> _categories = [];
   bool _isLoading = true;
   String? _error;
-  
-  // Filter state
+
   final _searchController = TextEditingController();
   String? _selectedCategory;
   String _selectedSort = SortOptions.newest;
   bool _inStockOnly = false;
-  
+
   @override
   void initState() {
     super.initState();
     _loadCategories();
     _loadProducts();
   }
-  
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
-  
-  /// Load categories from API
+
   Future<void> _loadCategories() async {
     try {
       final request = context.read<CookieRequest>();
       final response = await request.get(ApiConstants.categoriesEndpoint);
-      
+
       if (!mounted) return;
-      
+
       if (response is List) {
         setState(() {
-          _categories = response
-              .map((cat) => cat['name'] as String)
-              .toList();
+          _categories = response.map((cat) => cat['name'] as String).toList();
         });
       }
     } catch (e) {
-      // Silently fail for categories - not critical
       debugPrint('Failed to load categories: $e');
     }
   }
-  
-  /// Load products from API with current filters
+
   Future<void> _loadProducts() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
-    
+
     try {
       final request = context.read<CookieRequest>();
-      
-      // Build URL with filters
+
       final url = ApiConstants.productsWithParams(
-        search: _searchController.text.trim().isNotEmpty 
-            ? _searchController.text.trim() 
+        search: _searchController.text.trim().isNotEmpty
+            ? _searchController.text.trim()
             : null,
         category: _selectedCategory,
         sortBy: _selectedSort,
         inStockOnly: _inStockOnly ? true : null,
       );
-      
+
       final response = await request.get(url);
-      
+
       if (!mounted) return;
-      
+
       if (response is List) {
         setState(() {
           _products = Product.listFromJson(response);
@@ -116,17 +101,16 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = 'Failed to connect to server. Please check your internet connection.';
+        _error =
+            'Failed to connect to server. Please check your internet connection.';
         _isLoading = false;
       });
     }
   }
-  
-  /// Handle logout
+
   Future<void> _handleLogout() async {
-    // Get request before async gap
     final request = context.read<CookieRequest>();
-    
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -144,51 +128,37 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
-    
+
     if (confirmed != true || !mounted) return;
-    
+
     try {
       final response = await request.logout(ApiConstants.logoutEndpoint);
-      
+
       if (!mounted) return;
-      
+
       if (response['status'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Logged out successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(AppWidgets.successSnackBar('Logged out successfully'));
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const LoginPage()),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response['message'] ?? 'Logout failed'),
-            backgroundColor: Colors.red,
-          ),
+          AppWidgets.errorSnackBar(response['message'] ?? 'Logout failed'),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to logout. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
+        AppWidgets.errorSnackBar('Failed to logout. Please try again.'),
       );
     }
   }
-  
-  /// Handle search submit
-  void _handleSearch() {
-    _loadProducts();
-  }
-  
-  /// Clear all filters
+
+  void _handleSearch() => _loadProducts();
+
   void _clearFilters() {
     setState(() {
       _searchController.clear();
@@ -198,8 +168,7 @@ class _HomePageState extends State<HomePage> {
     });
     _loadProducts();
   }
-  
-  /// Show sort options bottom sheet
+
   void _showSortOptions() {
     showModalBottomSheet(
       context: context,
@@ -212,38 +181,33 @@ class _HomePageState extends State<HomePage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                'Sort By',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text('Sort By', style: AppTextStyles.headingMedium),
             ),
             const Divider(),
-            ...SortOptions.displayNames.entries.map((entry) => ListTile(
-              leading: Icon(
-                _selectedSort == entry.key 
-                    ? Icons.radio_button_checked 
-                    : Icons.radio_button_off,
-                color: Theme.of(context).primaryColor,
+            ...SortOptions.displayNames.entries.map(
+              (entry) => ListTile(
+                leading: Icon(
+                  _selectedSort == entry.key
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+                  color: AppColors.accentGold,
+                ),
+                title: Text(entry.value),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _selectedSort = entry.key);
+                  _loadProducts();
+                },
               ),
-              title: Text(entry.value),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() => _selectedSort = entry.key);
-                _loadProducts();
-              },
-            )),
+            ),
           ],
         ),
       ),
     );
   }
-  
-  /// Handle product tap - navigate to detail screen
+
   void _handleProductTap(Product product) {
     Navigator.push(
       context,
@@ -257,13 +221,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'BECATHLON',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1,
-          ),
-        ),
+        title: Text('BECATHLON', style: AppTextStyles.appBarTitle),
         centerTitle: true,
         actions: [
           IconButton(
@@ -279,22 +237,18 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             tooltip: 'Cart',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const CartScreen()),
-              );
-            },
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CartScreen()),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.receipt_long),
             tooltip: 'My Orders',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const OrderListScreen()),
-              );
-            },
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const OrderListScreen()),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -307,7 +261,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           // Search and Filter Section
           Container(
-            color: Theme.of(context).primaryColor.withOpacity(0.05),
+            color: AppColors.secondaryBlack,
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
@@ -327,59 +281,71 @@ class _HomePageState extends State<HomePage> {
                           )
                         : null,
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: AppColors.accentGray,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
                     ),
                   ),
                   textInputAction: TextInputAction.search,
                   onSubmitted: (_) => _handleSearch(),
                   onChanged: (value) => setState(() {}),
                 ),
-                
+
                 const SizedBox(height: 12),
-                
+
                 // Filter Row
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      // Category Filter
                       if (_categories.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: DropdownButtonHideUnderline(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               decoration: BoxDecoration(
                                 color: _selectedCategory != null
-                                    ? Theme.of(context).primaryColor.withOpacity(0.1)
-                                    : Colors.white,
+                                    ? AppColors.accentGoldLight
+                                    : AppColors.accentGray,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: _selectedCategory != null
-                                      ? Theme.of(context).primaryColor
-                                      : Colors.grey[300]!,
+                                      ? AppColors.accentGold
+                                      : AppColors.subtleBorder,
                                 ),
                               ),
                               child: DropdownButton<String>(
                                 value: _selectedCategory,
-                                hint: const Text('Category'),
-                                icon: const Icon(Icons.arrow_drop_down),
+                                hint: Text(
+                                  'Category',
+                                  style: AppTextStyles.bodySecondary,
+                                ),
+                                icon: const Icon(
+                                  Icons.arrow_drop_down,
+                                  color: AppColors.lightGray,
+                                ),
+                                dropdownColor: AppColors.secondaryBlack,
                                 items: [
-                                  const DropdownMenuItem(
+                                  DropdownMenuItem(
                                     value: null,
-                                    child: Text('All Categories'),
+                                    child: Text(
+                                      'All Categories',
+                                      style: AppTextStyles.bodyPrimary,
+                                    ),
                                   ),
-                                  ..._categories.map((category) => DropdownMenuItem(
-                                    value: category,
-                                    child: Text(category),
-                                  )),
+                                  ..._categories.map(
+                                    (category) => DropdownMenuItem(
+                                      value: category,
+                                      child: Text(
+                                        category,
+                                        style: AppTextStyles.bodyPrimary,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                                 onChanged: (value) {
                                   setState(() => _selectedCategory = value);
@@ -389,17 +355,17 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                         ),
-                      
-                      // Sort Button
+
                       ActionChip(
                         avatar: const Icon(Icons.sort, size: 18),
-                        label: Text(SortOptions.displayNames[_selectedSort] ?? 'Sort'),
+                        label: Text(
+                          SortOptions.displayNames[_selectedSort] ?? 'Sort',
+                        ),
                         onPressed: _showSortOptions,
                       ),
-                      
+
                       const SizedBox(width: 8),
-                      
-                      // In Stock Filter
+
                       FilterChip(
                         label: const Text('In Stock'),
                         selected: _inStockOnly,
@@ -408,10 +374,9 @@ class _HomePageState extends State<HomePage> {
                           _loadProducts();
                         },
                       ),
-                      
-                      // Clear Filters
-                      if (_selectedCategory != null || 
-                          _inStockOnly || 
+
+                      if (_selectedCategory != null ||
+                          _inStockOnly ||
                           _selectedSort != SortOptions.newest ||
                           _searchController.text.isNotEmpty)
                         Padding(
@@ -428,98 +393,39 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          
-          // Product Grid
-          Expanded(
-            child: _buildProductContent(),
-          ),
+
+          Expanded(child: _buildProductContent()),
         ],
       ),
     );
   }
-  
-  /// Build product content based on state
+
   Widget _buildProductContent() {
-    // Loading state
     if (_isLoading) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Loading products...'),
-          ],
-        ),
-      );
+      return AppWidgets.loadingIndicator(message: 'Loading products...');
     }
-    
-    // Error state
+
     if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-              const SizedBox(height: 16),
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _loadProducts,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      );
+      return AppWidgets.errorState(message: _error!, onRetry: _loadProducts);
     }
-    
-    // Empty state
+
     if (_products.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey[400]),
-              const SizedBox(height: 16),
-              const Text(
-                'No products found',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Try adjusting your filters or search terms',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-              if (_selectedCategory != null || _inStockOnly || _searchController.text.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: TextButton.icon(
-                    onPressed: _clearFilters,
-                    icon: const Icon(Icons.clear),
-                    label: const Text('Clear Filters'),
-                  ),
-                ),
-            ],
-          ),
-        ),
+      return AppWidgets.emptyState(
+        title: 'No products found',
+        subtitle: 'Try adjusting your filters or search terms',
+        action:
+            (_selectedCategory != null ||
+                _inStockOnly ||
+                _searchController.text.isNotEmpty)
+            ? TextButton.icon(
+                onPressed: _clearFilters,
+                icon: const Icon(Icons.clear),
+                label: const Text('Clear Filters'),
+              )
+            : null,
       );
     }
-    
-    // Product grid
+
     return RefreshIndicator(
       onRefresh: _loadProducts,
       child: GridView.builder(
