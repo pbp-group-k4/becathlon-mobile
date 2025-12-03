@@ -14,7 +14,7 @@ class Product {
   final String image;
   final int stock;
   final String rating;
-  
+
   Product({
     required this.id,
     required this.name,
@@ -26,9 +26,9 @@ class Product {
     required this.stock,
     required this.rating,
   });
-  
+
   /// Parse product from Django's pk/fields JSON format
-  /// 
+  ///
   /// Expected format:
   /// ```json
   /// {
@@ -47,7 +47,7 @@ class Product {
   /// ```
   factory Product.fromJson(Map<String, dynamic> json) {
     final fields = json['fields'] as Map<String, dynamic>;
-    
+
     return Product(
       id: json['pk'] as int,
       name: fields['name'] as String? ?? '',
@@ -60,7 +60,7 @@ class Product {
       rating: fields['rating']?.toString() ?? '0.0',
     );
   }
-  
+
   /// Convert product to JSON format
   Map<String, dynamic> toJson() {
     return {
@@ -77,35 +77,37 @@ class Product {
       },
     };
   }
-  
+
   /// Check if product is in stock
   bool get isInStock => stock > 0;
-  
+
   /// Get formatted price with currency symbol
   String get formattedPrice {
     final priceValue = double.tryParse(price) ?? 0.0;
     return '\$${priceValue.toStringAsFixed(2)}';
   }
-  
+
   /// Get numeric rating value
   double get ratingValue => double.tryParse(rating) ?? 0.0;
-  
+
   /// Parse a list of products from JSON array
   static List<Product> listFromJson(List<dynamic> jsonList) {
-    return jsonList.map((json) => Product.fromJson(json as Map<String, dynamic>)).toList();
+    return jsonList
+        .map((json) => Product.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
-  
+
   @override
   String toString() {
     return 'Product(id: $id, name: $name, price: $price, category: $category, brand: $brand)';
   }
-  
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is Product && other.id == id;
   }
-  
+
   @override
   int get hashCode => id.hashCode;
 }

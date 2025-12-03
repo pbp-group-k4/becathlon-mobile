@@ -3,6 +3,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../utils/constants.dart';
+import '../utils/styles.dart';
 import 'login.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -20,14 +21,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Future<void> _addToCart() async {
     final request = context.read<CookieRequest>();
-    
-    // Check if user is logged in (optional, but good UX)
+
     if (!request.loggedIn) {
       final result = await Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const LoginPage()),
       );
-      if (result != true) return; // User didn't login
+      if (result != true) return;
     }
 
     if (!mounted) return;
@@ -39,36 +39,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     try {
       final response = await request.post(
         ApiConstants.addToCartEndpoint(widget.product.id),
-        {
-          'quantity': _quantity.toString(),
-        },
+        {'quantity': _quantity.toString()},
       );
 
       if (!mounted) return;
 
       if (response['success'] == true || response['status'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Added to cart successfully!'),
-            backgroundColor: Colors.green,
-          ),
+          AppWidgets.successSnackBar('Added to cart successfully!'),
         );
-        Navigator.pop(context); // Go back to previous screen
+        Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response['message'] ?? 'Failed to add to cart'),
-            backgroundColor: Colors.red,
+          AppWidgets.errorSnackBar(
+            response['message'] ?? 'Failed to add to cart',
           ),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('An error occurred. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
+        AppWidgets.errorSnackBar('An error occurred. Please try again.'),
       );
     } finally {
       if (mounted) {
@@ -83,7 +74,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.product.name),
+        title: Text(
+          widget.product.name,
+          style: AppTextStyles.appBarTitle.copyWith(fontSize: 16),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -98,11 +92,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   height: 300,
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.image_not_supported, size: 64),
+                  color: AppColors.accentGray,
+                  child: const Icon(
+                    Icons.image_not_supported,
+                    size: 64,
+                    color: AppColors.lightGray,
+                  ),
                 ),
               ),
-            
+
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -112,60 +110,52 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: Colors.grey[200],
+                          color: AppColors.accentGray,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           widget.product.category,
-                          style: TextStyle(color: Colors.grey[800], fontSize: 12),
+                          style: AppTextStyles.bodySmall,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         widget.product.brand.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
+                        style: AppTextStyles.productBrand.copyWith(
+                          fontSize: 12,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Name
-                  Text(
-                    widget.product.name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Text(widget.product.name, style: AppTextStyles.headingLarge),
                   const SizedBox(height: 8),
-                  
+
                   // Price & Rating
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         widget.product.formattedPrice,
-                        style: TextStyle(
+                        style: AppTextStyles.productPrice.copyWith(
                           fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
                         ),
                       ),
                       Row(
                         children: [
-                          const Icon(Icons.star, color: Colors.amber),
+                          const Icon(Icons.star, color: AppColors.accentGold),
                           const SizedBox(width: 4),
                           Text(
                             widget.product.rating,
-                            style: const TextStyle(
+                            style: AppTextStyles.headingMedium.copyWith(
                               fontSize: 18,
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -173,41 +163,31 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Description
-                  const Text(
-                    'Description',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Text('Description', style: AppTextStyles.headingMedium),
                   const SizedBox(height: 8),
                   Text(
                     widget.product.description,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[700],
-                      height: 1.5,
-                    ),
+                    style: AppTextStyles.bodyPrimary.copyWith(height: 1.5),
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Stock Status
                   if (!widget.product.isInStock)
                     Container(
                       padding: const EdgeInsets.all(12),
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.red[50],
+                        color: AppColors.dangerRedLight,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red[200]!),
+                        border: Border.all(color: AppColors.dangerRed),
                       ),
                       child: const Text(
                         'Out of Stock',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.red,
+                          color: AppColors.dangerRed,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -216,33 +196,38 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     // Quantity Selector
                     Row(
                       children: [
-                        const Text(
+                        Text(
                           'Quantity:',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          style: AppTextStyles.bodyPrimary.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(width: 16),
                         Container(
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
+                            border: Border.all(color: AppColors.accentGray),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.remove),
+                                icon: const Icon(
+                                  Icons.remove,
+                                  color: AppColors.lightGray,
+                                ),
                                 onPressed: _quantity > 1
                                     ? () => setState(() => _quantity--)
                                     : null,
                               ),
                               Text(
                                 '$_quantity',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: AppTextStyles.headingMedium,
                               ),
                               IconButton(
-                                icon: const Icon(Icons.add),
+                                icon: const Icon(
+                                  Icons.add,
+                                  color: AppColors.lightGray,
+                                ),
                                 onPressed: _quantity < widget.product.stock
                                     ? () => setState(() => _quantity++)
                                     : null,
@@ -253,31 +238,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         const SizedBox(width: 16),
                         Text(
                           '${widget.product.stock} available',
-                          style: TextStyle(color: Colors.grey[600]),
+                          style: AppTextStyles.bodySecondary,
                         ),
                       ],
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Add to Cart Button
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
                         onPressed: _isAddingToCart ? null : _addToCart,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
                         child: _isAddingToCart
                             ? const SizedBox(
                                 height: 24,
                                 width: 24,
                                 child: CircularProgressIndicator(
-                                  color: Colors.white,
+                                  color: AppColors.primaryBlack,
                                   strokeWidth: 2,
                                 ),
                               )

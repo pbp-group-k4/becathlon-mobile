@@ -43,9 +43,10 @@ class Order {
           : null,
     );
   }
-  
+
   String get formattedTotalPrice => '\$${totalPrice.toStringAsFixed(2)}';
-  String get formattedDate => '${createdAt.day}/${createdAt.month}/${createdAt.year}';
+  String get formattedDate =>
+      '${createdAt.day}/${createdAt.month}/${createdAt.year}';
 }
 
 class OrderItem {
@@ -75,7 +76,7 @@ class OrderItem {
       imageUrl: json['image_url'] as String? ?? '',
     );
   }
-  
+
   String get formattedPrice => '\$${price.toStringAsFixed(2)}';
   String get formattedSubtotal => '\$${subtotal.toStringAsFixed(2)}';
 }
