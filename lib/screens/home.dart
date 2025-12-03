@@ -8,6 +8,7 @@ import 'login.dart';
 import 'cart_screen.dart';
 import 'order_list_screen.dart';
 import 'product_detail_screen.dart';
+import 'profile_screen.dart';
 
 /// Home page with product grid display
 /// 
@@ -266,6 +267,16 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.person),
+            tooltip: 'Profile',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.shopping_cart),
             tooltip: 'Cart',
             onPressed: () {
@@ -290,7 +301,7 @@ class _HomePageState extends State<HomePage> {
             tooltip: 'Logout',
             onPressed: _handleLogout,
           ),
-        ],
+],
       ),
       body: Column(
         children: [

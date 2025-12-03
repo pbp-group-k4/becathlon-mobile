@@ -36,6 +36,7 @@ class ApiConstants {
   static String orderDetailEndpoint(int orderId) => '$baseUrl/order/flutter/$orderId/';
   static String orderStatusEndpoint(int orderId) => '$baseUrl/order/flutter/$orderId/status/';
   static String submitRatingEndpoint(int orderId) => '$baseUrl/order/flutter/$orderId/rate/';
+
   
   /// Get product detail endpoint for a specific product ID
   static String productDetailEndpoint(int productId) {
@@ -86,6 +87,10 @@ class ApiConstants {
     
     return '$productsEndpoint?$queryString';
   }
+
+    // Profile Endpoints
+  static const String profileDetailEndpoint = '$baseUrl/profiles/api/';
+  static const String profileUpdateEndpoint = '$baseUrl/profiles/api/update/';
 }
 
 /// Sort options available for product listing
