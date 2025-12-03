@@ -10,6 +10,7 @@ import 'cart_screen.dart';
 import 'order_list_screen.dart';
 import 'product_detail_screen.dart';
 import 'profile_screen.dart';
+import 'stores/store.dart';
 
 /// Home page with product grid display
 class HomePage extends StatefulWidget {
@@ -221,6 +222,16 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.store),
+          tooltip: 'Store Locator',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const StoreLocatorScreen()),
+            );
+          },
+        ),
         title: Text('BECATHLON', style: AppTextStyles.appBarTitle),
         centerTitle: true,
         actions: [

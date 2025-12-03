@@ -8,7 +8,7 @@ class ApiConstants {
   // Development Base URL (localhost Django server)
   // static const String baseUrl = 'http://127.0.0.1:8000';
 
-  // Production Base URL (commented out - deployment broken)
+  // Production Base URL
   static const String baseUrl =
       'https://muhammad-vegard-becathlon.pbp.cs.ui.ac.id';
 
