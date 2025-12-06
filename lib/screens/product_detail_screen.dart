@@ -5,6 +5,7 @@ import '../models/product.dart';
 import '../utils/constants.dart';
 import '../utils/styles.dart';
 import 'login.dart';
+import 'recommendations/recommendation_section.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -173,7 +174,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Stock Status
+                  // Stock Status & Cart Controls
                   if (!widget.product.isInStock)
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -269,6 +270,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                   ],
+
+                  // --- Recommendations Section ---
+                  // Now placed outside the else block so it shows even if out of stock
+                  const SizedBox(height: 32),
+                  const Divider(color: AppColors.accentGray),
+                  const SizedBox(height: 24),
+
+                  RecommendationSection(
+                    category: widget.product.category,
+                    currentProductId: widget.product.id,
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
