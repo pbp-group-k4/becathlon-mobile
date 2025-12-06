@@ -31,6 +31,11 @@ class _HomePageState extends State<HomePage> {
   String? _selectedCategory;
   String _selectedSort = SortOptions.newest;
   bool _inStockOnly = false;
+  
+  // Wishlist State
+  final Set<int> _wishlistIds = {};
+  final List<Product> _wishlistedProducts = [];
+  bool _showWishlistOnly = false;
 
   @override
   void initState() {
@@ -159,7 +164,34 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _handleSearch() => _loadProducts();
+  void _handleSearch() {
+   
+    _loadProducts();
+  }
+
+  void _toggleWishlist(Product product) {
+    setState(() {
+      if (_wishlistIds.contains(product.id)) {
+        _wishlistIds.remove(product.id);
+        _wishlistedProducts.removeWhere((p) => p.id == product.id);
+      } else {
+        _wishlistIds.add(product.id);
+         // Check if already in list to avoid dupes (though Set handles ID check)
+        if (!_wishlistedProducts.any((p) => p.id == product.id)) {
+           _wishlistedProducts.add(product);
+        }
+      }
+      
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        AppWidgets.successSnackBar(
+          _wishlistIds.contains(product.id)
+              ? 'Added to wishlist'
+              : 'Removed from wishlist',
+        ),
+      );
+    });
+  }
 
   void _clearFilters() {
     setState(() {
@@ -167,6 +199,7 @@ class _HomePageState extends State<HomePage> {
       _selectedCategory = null;
       _selectedSort = SortOptions.newest;
       _inStockOnly = false;
+      _showWishlistOnly = false;
     });
     _loadProducts();
   }
@@ -214,7 +247,11 @@ class _HomePageState extends State<HomePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ProductDetailScreen(product: product),
+        builder: (context) => ProductDetailScreen(
+          product: product,
+          isWishlisted: _wishlistIds.contains(product.id),
+          onWishlistToggle: () => _toggleWishlist(product),
+        ),
       ),
     );
   }
@@ -387,8 +424,27 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
 
+                      const SizedBox(width: 8),
+
+                      FilterChip(
+                        avatar: Icon(
+                          _showWishlistOnly ? Icons.favorite : Icons.favorite_border,
+                          size: 18,
+                          color: _showWishlistOnly ? AppColors.dangerRed : null,
+                        ),
+                        label: const Text('Wishlist'),
+                        selected: _showWishlistOnly,
+                        selectedColor: AppColors.dangerRedLight,
+                        onSelected: (selected) {
+                          setState(() {
+                             _showWishlistOnly = selected;
+                          });
+                        },
+                      ),
+
                       if (_selectedCategory != null ||
                           _inStockOnly ||
+                          _showWishlistOnly ||
                           _selectedSort != SortOptions.newest ||
                           _searchController.text.isNotEmpty)
                         Padding(
@@ -421,13 +477,18 @@ class _HomePageState extends State<HomePage> {
       return AppWidgets.errorState(message: _error!, onRetry: _loadProducts);
     }
 
-    if (_products.isEmpty) {
+    final displayList = _showWishlistOnly ? _wishlistedProducts : _products;
+
+    if (displayList.isEmpty) {
       return AppWidgets.emptyState(
-        title: 'No products found',
-        subtitle: 'Try adjusting your filters or search terms',
+        title: _showWishlistOnly ? 'Your wishlist is empty' : 'No products found',
+        subtitle: _showWishlistOnly 
+            ? 'Mark items as favorite to see them here' 
+            : 'Try adjusting your filters or search terms',
         action:
             (_selectedCategory != null ||
                 _inStockOnly ||
+                _showWishlistOnly ||
                 _searchController.text.isNotEmpty)
             ? TextButton.icon(
                 onPressed: _clearFilters,
@@ -442,8 +503,8 @@ class _HomePageState extends State<HomePage> {
       onRefresh: _loadProducts,
       child: CustomScrollView(
         slivers: [
-          // 1. Recommendation Section (Only show on main view, not when searching specific terms)
-          if (_searchController.text.isEmpty && _selectedCategory == null)
+          // 1. Recommendation Section (Only show on main view, not when searching specific terms OR in wishlist)
+          if (_searchController.text.isEmpty && _selectedCategory == null && !_showWishlistOnly)
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.only(top: 16.0),
@@ -455,10 +516,13 @@ class _HomePageState extends State<HomePage> {
             ),
 
           if (_searchController.text.isEmpty && _selectedCategory == null)
-            SliverToBoxAdapter(
+             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
-                child: Text("All Products", style: AppTextStyles.headingMedium),
+                child: Text(
+                  _showWishlistOnly ? "My Wishlist" : "All Products", 
+                  style: AppTextStyles.headingMedium
+                ),
               ),
             ),
 
@@ -474,13 +538,13 @@ class _HomePageState extends State<HomePage> {
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  final product = _products[index];
+                  final product = displayList[index];
                   return ProductCard(
                     product: product,
                     onTap: () => _handleProductTap(product),
                   );
                 },
-                childCount: _products.length,
+                childCount: displayList.length,
               ),
             ),
           ),

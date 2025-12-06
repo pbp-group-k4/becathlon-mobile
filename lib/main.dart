@@ -5,6 +5,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'screens/login.dart';
 import 'utils/styles.dart';
+import 'screens/splash_screen.dart';
 
 /// DEVELOPMENT ONLY! Custom HttpOverrides to bypass SSL certificate validation
 /// This is needed because the backend may use a certificate not in the device's trust store
@@ -45,7 +46,7 @@ class MyApp extends StatelessWidget {
         title: 'Becathlon',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,
-        home: const LoginPage(),
+        home: SplashScreen(),
       ),
     );
   }

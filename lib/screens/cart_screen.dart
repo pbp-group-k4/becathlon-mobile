@@ -18,6 +18,7 @@ class _CartScreenState extends State<CartScreen> {
   double _totalPrice = 0.0;
   bool _isLoading = true;
   String? _error;
+  final Map<int, String> _productImageCache = {}; // Cache product images
 
   @override
   void initState() {
@@ -40,13 +41,18 @@ class _CartScreenState extends State<CartScreen> {
       if (response is Map) {
         if (response.containsKey('items')) {
           final itemsList = response['items'] as List;
+          final loadedItems = itemsList
+              .map((item) => CartItem.fromJson(item))
+              .toList();
+
           setState(() {
-            _cartItems = itemsList
-                .map((item) => CartItem.fromJson(item))
-                .toList();
+            _cartItems = loadedItems;
             _totalPrice = (response['subtotal'] as num?)?.toDouble() ?? 0.0;
             _isLoading = false;
           });
+
+          
+          _loadMissingProductImages(loadedItems);
         } else {
           setState(() {
             _error = 'Invalid server response';
@@ -94,6 +100,53 @@ class _CartScreenState extends State<CartScreen> {
         context,
       ).showSnackBar(AppWidgets.errorSnackBar('Error updating cart'));
     }
+  }
+
+  Future<void> _loadMissingProductImages(List<CartItem> items) async {
+    final request = context.read<CookieRequest>();
+
+    // Find items that need images
+    final itemsNeedingImages = items
+        .where(
+          (item) =>
+              (item.imageUrl == null || item.imageUrl!.isEmpty) &&
+              !_productImageCache.containsKey(item.productId),
+        )
+        .toList();
+
+    if (itemsNeedingImages.isEmpty) return;
+
+    // Fetch product details for items missing images
+    for (final item in itemsNeedingImages) {
+      try {
+        final productResponse = await request.get(
+          ApiConstants.productDetailEndpoint(item.productId),
+        );
+
+        if (productResponse is Map && productResponse['fields'] != null) {
+          final fields = productResponse['fields'] as Map<String, dynamic>;
+          final imageUrl = fields['image'] as String?;
+
+          if (imageUrl != null && imageUrl.isNotEmpty && mounted) {
+            setState(() {
+              _productImageCache[item.productId] = imageUrl;
+            });
+          }
+        }
+      } catch (e) {
+        // Silently fail for individual product fetches
+        // Images are optional, so we don't want to break the cart view
+      }
+    }
+  }
+
+  String? _getImageUrl(CartItem item) {
+    // First check if item has imageUrl directly
+    if (item.imageUrl != null && item.imageUrl!.isNotEmpty) {
+      return item.imageUrl;
+    }
+    // Then check cache
+    return _productImageCache[item.productId];
   }
 
   Future<void> _removeItem(CartItem item) async {
@@ -208,19 +261,33 @@ class _CartScreenState extends State<CartScreen> {
             decoration: BoxDecoration(
               color: AppColors.accentGray,
               borderRadius: BorderRadius.circular(8),
-              image: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                  ? DecorationImage(
-                      image: NetworkImage(item.imageUrl!),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
             ),
-            child: item.imageUrl == null || item.imageUrl!.isEmpty
-                ? const Icon(
-                    Icons.image_not_supported,
-                    color: AppColors.lightGray,
-                  )
-                : null,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: _getImageUrl(item) != null
+                  ? Image.network(
+                      _getImageUrl(item)!,
+                      fit: BoxFit.cover,
+                      width: 80,
+                      height: 80,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                : null,
+                            strokeWidth: 2,
+                            color: AppColors.accentGold,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) =>
+                          AppWidgets.imagePlaceholder(iconSize: 32),
+                    )
+                  : AppWidgets.imagePlaceholder(iconSize: 32),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -285,6 +352,41 @@ class _CartScreenState extends State<CartScreen> {
                     Text(
                       item.formattedSubtotal,
                       style: AppTextStyles.productPrice,
+                    ),
+                    SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        color: AppColors.dangerRed,
+                      ),
+                      onPressed: () async {
+                        final shouldDelete = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Remove Item'),
+                            content: const Text(
+                              'Are you sure you want to remove this item from your cart?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.dangerRed,
+                                ),
+                                child: const Text('Remove'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (shouldDelete == true && mounted) {
+                          _removeItem(item);
+                        }
+                      },
+                      tooltip: 'Remove item',
                     ),
                   ],
                 ),

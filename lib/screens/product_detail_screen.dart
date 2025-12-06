@@ -9,8 +9,15 @@ import 'recommendations/recommendation_section.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
+  final bool isWishlisted;
+  final VoidCallback? onWishlistToggle;
 
-  const ProductDetailScreen({super.key, required this.product});
+  const ProductDetailScreen({
+    super.key,
+    required this.product,
+    this.isWishlisted = false,
+    this.onWishlistToggle,
+  });
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -19,6 +26,14 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _quantity = 1;
   bool _isAddingToCart = false;
+  late bool _isWishlisted;
+
+  @override
+  void initState() {
+    super.initState();
+    _isWishlisted = widget.isWishlisted;
+  }
+
 
   Future<void> _addToCart() async {
     final request = context.read<CookieRequest>();
@@ -79,6 +94,30 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           widget.product.name,
           style: AppTextStyles.appBarTitle.copyWith(fontSize: 16),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isWishlisted ? Icons.favorite : Icons.favorite_border,
+              color: _isWishlisted ? AppColors.dangerRed : null,
+            ),
+            tooltip: _isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist',
+            onPressed: () {
+              setState(() {
+                _isWishlisted = !_isWishlisted;
+              });
+              if (widget.onWishlistToggle != null) {
+                widget.onWishlistToggle!();
+              }
+              // Local feedback as well since it's a separate screen
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                AppWidgets.successSnackBar(
+                   _isWishlisted ? 'Added to wishlist' : 'Removed from wishlist',
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
