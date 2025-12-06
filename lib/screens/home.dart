@@ -11,6 +11,7 @@ import 'order_list_screen.dart';
 import 'product_detail_screen.dart';
 import 'profile_screen.dart';
 import 'stores/store.dart';
+import 'recommendations/recommendation_section.dart';
 
 /// Home page with product grid display
 class HomePage extends StatefulWidget {
@@ -439,22 +440,51 @@ class _HomePageState extends State<HomePage> {
 
     return RefreshIndicator(
       onRefresh: _loadProducts,
-      child: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.65,
-        ),
-        itemCount: _products.length,
-        itemBuilder: (context, index) {
-          final product = _products[index];
-          return ProductCard(
-            product: product,
-            onTap: () => _handleProductTap(product),
-          );
-        },
+      child: CustomScrollView(
+        slivers: [
+          // 1. Recommendation Section (Only show on main view, not when searching specific terms)
+          if (_searchController.text.isEmpty && _selectedCategory == null)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(top: 16.0),
+                child: RecommendationSection(
+                  title: "Featured For You",
+                  // No category/ID passed, so it fetches general recommendations
+                ),
+              ),
+            ),
+
+          if (_searchController.text.isEmpty && _selectedCategory == null)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                child: Text("All Products", style: AppTextStyles.headingMedium),
+              ),
+            ),
+
+          // 2. The Main Product Grid
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 0.65,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final product = _products[index];
+                  return ProductCard(
+                    product: product,
+                    onTap: () => _handleProductTap(product),
+                  );
+                },
+                childCount: _products.length,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
