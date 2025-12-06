@@ -84,7 +84,7 @@ class _RecommendationSectionState extends State<RecommendationSection> {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 280,
+          height: 320,
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             scrollDirection: Axis.horizontal,
