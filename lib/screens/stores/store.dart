@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart'; // NEW: For the Map
+import 'package:latlong2/latlong.dart'; // NEW: For Coordinates
 import 'package:url_launcher/url_launcher.dart';
 
 class Store {
@@ -41,6 +43,9 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
 
   String _searchQuery = "";
   Store? _selectedStore;
+  
+  // Controller to move the map programmatically
+  final MapController _mapController = MapController();
 
   @override
   Widget build(BuildContext context) {
@@ -65,13 +70,16 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildSearchBar(),
-            _buildMapPlaceholder(),
-            Expanded(child: _buildStoreList()),
-            _buildStoreServices(),
-          ],
+        // Wrapped in SingleChildScrollView to prevent overflow
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildSearchBar(),
+              _buildInteractiveMap(), // CHANGED: Real Map Widget
+              _buildStoreList(),
+              _buildStoreServices(),
+            ],
+          ),
         ),
       ),
     );
@@ -104,52 +112,54 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
     );
   }
 
-  Widget _buildMapPlaceholder() {
+  // NEW: Interactive Map Implementation
+  Widget _buildInteractiveMap() {
     return Container(
-      height: 180,
+      height: 250, // Slightly taller for better visibility
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [accentGray, secondaryBlack],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
         border: Border(bottom: BorderSide(color: secondaryBlack)),
       ),
-      child: Stack(
+      child: FlutterMap(
+        mapController: _mapController,
+        options: MapOptions(
+          initialCenter: const LatLng(-6.21462, 106.84513), // Defaults to Jakarta
+          initialZoom: 11.0,
+          interactionOptions: const InteractionOptions(
+            flags: InteractiveFlag.all & ~InteractiveFlag.rotate, // Disable rotation for simplicity
+          ),
+        ),
         children: [
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.location_on, color: accentBlue, size: 48),
-                SizedBox(height: 8),
-                Text(
-                  "Interactive Map",
-                  style: TextStyle(
-                    color: ultraLight,
-                    fontWeight: FontWeight.w500,
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.becathlon.becathlon_mobile',
+          ),
+          MarkerLayer(
+            markers: _demoStores.map((store) {
+              final isSelected = _selectedStore?.id == store.id;
+              return Marker(
+                point: LatLng(store.latitude, store.longitude),
+                width: 40,
+                height: 40,
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedStore = store);
+                    _mapController.move(
+                      LatLng(store.latitude, store.longitude), 
+                      14.0
+                    );
+                  },
+                  child: AnimatedScale(
+                    scale: isSelected ? 1.2 : 1.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Icon(
+                      Icons.location_on,
+                      color: isSelected ? accentBlue : Colors.red,
+                      size: 40,
+                    ),
                   ),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  "Map integration coming soon",
-                  style: TextStyle(color: lightGray, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            top: 12,
-            right: 12,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: primaryBlack,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: secondaryBlack),
-              ),
-              child: const Icon(Icons.my_location, color: ultraLight, size: 20),
-            ),
+              );
+            }).toList(),
           ),
         ],
       ),
@@ -174,7 +184,7 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "\${filtered.length} Stores",
+                "${filtered.length} Stores",
                 style: const TextStyle(
                   color: ultraLight,
                   fontSize: 14,
@@ -196,22 +206,29 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Expanded(
-            child: filtered.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: filtered.length,
-                    itemBuilder: (context, index) {
-                      final store = filtered[index];
-                      final isSelected = _selectedStore?.id == store.id;
-                      return GestureDetector(
-                        onTap: () => setState(() => _selectedStore = store),
-                        child: _buildStoreCard(store, isSelected),
-                      );
-                    },
-                  ),
-          ),
+          filtered.isEmpty
+              ? _buildEmptyState()
+              : ListView.builder(
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true, // Needed for SingleChildScrollView
+                  physics: const NeverScrollableScrollPhysics(), // Scroll handled by parent
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final store = filtered[index];
+                    final isSelected = _selectedStore?.id == store.id;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() => _selectedStore = store);
+                        // Move map to selected store
+                        _mapController.move(
+                          LatLng(store.latitude, store.longitude), 
+                          14.0
+                        );
+                      },
+                      child: _buildStoreCard(store, isSelected),
+                    );
+                  },
+                ),
         ],
       ),
     );
@@ -279,37 +296,38 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
                       style: const TextStyle(color: lightGray, fontSize: 13),
                     ),
                     Text(
-                      "\${store.city}, \${store.country}",
+                      "${store.city}, ${store.country}",
                       style: const TextStyle(color: lightGray, fontSize: 13),
                     ),
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: accentBlue,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.location_on, color: ultraLight, size: 14),
-                    SizedBox(width: 4),
-                    Text(
-                      "View",
-                      style: TextStyle(
-                        color: ultraLight,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
+              if (isSelected)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: accentBlue,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.location_on, color: ultraLight, size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        "Selected",
+                        style: TextStyle(
+                          color: ultraLight,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -342,25 +360,6 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
                     backgroundColor: accentBlue,
                     foregroundColor: ultraLight,
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.info_outline, size: 16),
-                  label: const Text(
-                    "DETAILS",
-                    style: TextStyle(fontSize: 11, letterSpacing: 0.5),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: lightGray,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    side: const BorderSide(color: secondaryBlack),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -446,7 +445,7 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
 
   Future<void> _openMaps(Store store) async {
     final url = Uri.parse(
-      "https://www.google.com/maps/search/?api=1&query=\${store.latitude},\${store.longitude}",
+      "https://www.google.com/maps/search/?api=1&query=${store.latitude},${store.longitude}",
     );
     try {
       await launchUrl(url, mode: LaunchMode.externalApplication);

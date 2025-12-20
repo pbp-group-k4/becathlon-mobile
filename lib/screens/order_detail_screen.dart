@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
@@ -35,6 +34,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     try {
       final request = context.read<CookieRequest>();
+      // Ensure ApiConstants.orderDetailEndpoint exists in your constants file
       final response = await request.get(
         ApiConstants.orderDetailEndpoint(widget.orderId),
       );
@@ -71,12 +71,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       if (!mounted) return;
 
       if (response['status'] == true) {
-        // Reload full order to update UI
-        _loadOrderDetail();
-
+        _loadOrderDetail(); // Reload full order to update UI
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Status: ${response['delivery_status_display']}'),
+            backgroundColor: AppColors.accentBlue,
             duration: const Duration(seconds: 2),
           ),
         );
@@ -86,6 +85,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
+  // FEATURE: Product Rating Dialog
   Future<void> _showRatingDialog(OrderItem item) async {
     int rating = 5;
     final reviewController = TextEditingController();
@@ -94,18 +94,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: Text('Rate ${item.productName}'),
+          backgroundColor: AppColors.secondaryBlack,
+          title: Text(
+            'Rate ${item.productName}',
+            style: const TextStyle(color: AppColors.ultraLight),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const Text(
+                "How was the product?",
+                style: TextStyle(color: AppColors.lightGray),
+              ),
+              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(5, (index) {
                   return IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                     icon: Icon(
                       index < rating ? Icons.star : Icons.star_border,
                       color: AppColors.accentGold,
-                      size: 32,
+                      size: 36,
                     ),
                     onPressed: () => setState(() => rating = index + 1),
                   );
@@ -114,9 +125,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: reviewController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: AppColors.ultraLight),
+                decoration: InputDecoration(
                   hintText: 'Write a review (optional)',
-                  border: OutlineInputBorder(),
+                  hintStyle: const TextStyle(color: AppColors.lightGray),
+                  filled: true,
+                  fillColor: AppColors.primaryBlack,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.all(12),
                 ),
                 maxLines: 3,
               ),
@@ -125,9 +144,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.lightGray)),
             ),
-            TextButton(
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accentBlue,
+                foregroundColor: AppColors.ultraLight,
+              ),
               onPressed: () async {
                 Navigator.pop(context);
                 await _submitRating(
@@ -142,6 +165,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ),
       ),
     );
+    reviewController.dispose();
   }
 
   Future<void> _submitRating(int productId, int rating, String review) async {
@@ -160,20 +184,28 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
       if (response['status'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          AppWidgets.successSnackBar('Rating submitted successfully!'),
+          const SnackBar(
+            content: Text('Rating submitted successfully!'),
+            backgroundColor: AppColors.successGreen,
+          ),
         );
-        _loadOrderDetail(); // Reload to update rated status
+        _loadOrderDetail(); // Reload to update "Rated" status
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          AppWidgets.errorSnackBar(
-            response['message'] ?? 'Failed to submit rating',
+          SnackBar(
+            content: Text(response['message'] ?? 'Failed to submit rating'),
+            backgroundColor: AppColors.dangerRed,
           ),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Error submitting rating')));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error submitting rating'),
+          backgroundColor: AppColors.dangerRed,
+        ),
+      );
     }
   }
 
@@ -183,8 +215,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       return Scaffold(
         appBar: AppBar(
           title: Text('Order Details', style: AppTextStyles.appBarTitle),
+          backgroundColor: AppColors.primaryBlack,
         ),
-        body: AppWidgets.loadingIndicator(message: 'Loading order...'),
+        backgroundColor: AppColors.primaryBlack,
+        body: const Center(child: CircularProgressIndicator(color: AppColors.accentBlue)),
       );
     }
 
@@ -192,20 +226,34 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       return Scaffold(
         appBar: AppBar(
           title: Text('Order Details', style: AppTextStyles.appBarTitle),
+          backgroundColor: AppColors.primaryBlack,
         ),
-        body: AppWidgets.errorState(
-          message: _error ?? 'Order not found',
-          onRetry: _loadOrderDetail,
+        backgroundColor: AppColors.primaryBlack,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_error ?? 'Order not found', style: const TextStyle(color: AppColors.ultraLight)),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadOrderDetail,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     return Scaffold(
+      backgroundColor: AppColors.primaryBlack,
       appBar: AppBar(
+        backgroundColor: AppColors.primaryBlack,
+        elevation: 0,
         title: Text('Order #${_order!.id}', style: AppTextStyles.appBarTitle),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: AppColors.ultraLight),
             onPressed: _refreshStatus,
             tooltip: 'Refresh Status',
           ),
@@ -217,39 +265,52 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Status Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Status', style: AppTextStyles.bodySecondary),
-                        Text(
-                          _order!.status,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.secondaryBlack,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.accentGray),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Status', style: AppTextStyles.bodySecondary),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _order!.status == 'PAID' ? AppColors.successGreen.withOpacity(0.2) : AppColors.accentGray,
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                      ],
-                    ),
-                    const Divider(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Delivery', style: AppTextStyles.bodySecondary),
-                        Text(
-                          _order!.deliveryStatusDisplay.isNotEmpty
-                              ? _order!.deliveryStatusDisplay
-                              : 'Pending',
-                          style: const TextStyle(
+                        child: Text(
+                          _order!.status,
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: AppColors.accentBlue,
+                            color: _order!.status == 'PAID' ? AppColors.successGreen : AppColors.ultraLight,
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 24, color: AppColors.accentGray),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Delivery', style: AppTextStyles.bodySecondary),
+                      Text(
+                        _order!.deliveryStatusDisplay.isNotEmpty
+                            ? _order!.deliveryStatusDisplay
+                            : 'Pending',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.accentBlue,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
@@ -257,23 +318,32 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             // Shipping Address
             if (_order!.shippingAddress != null) ...[
               Text('Shipping Address', style: AppTextStyles.headingMedium),
-              const SizedBox(height: 8),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _order!.shippingAddress!.fullName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(_order!.shippingAddress!.phoneNumber),
-                      const SizedBox(height: 4),
-                      Text(_order!.shippingAddress!.address),
-                    ],
-                  ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.secondaryBlack,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _order!.shippingAddress!.fullName,
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.ultraLight),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _order!.shippingAddress!.phoneNumber,
+                      style: const TextStyle(color: AppColors.lightGray),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _order!.shippingAddress!.address,
+                      style: const TextStyle(color: AppColors.lightGray),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
@@ -281,27 +351,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
             // Order Items
             Text('Items', style: AppTextStyles.headingMedium),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: _order!.items?.length ?? 0,
-              separatorBuilder: (context, index) => const Divider(),
+              separatorBuilder: (context, index) => const Divider(color: AppColors.accentGray),
               itemBuilder: (context, index) {
                 final item = _order!.items![index];
+                // Check if delivery is complete and if item hasn't been rated
                 final isDelivered = _order!.deliveryStatus == 'DELIVERED';
-                final hasRated =
-                    _order!.ratedProductIds?.contains(item.productId) ?? false;
+                final hasRated = _order!.ratedProductIds?.contains(item.productId) ?? false;
 
-                return Padding(
+                return Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Image
                       Container(
-                        width: 60,
-                        height: 60,
+                        width: 70,
+                        height: 70,
                         decoration: BoxDecoration(
                           color: AppColors.accentGray,
                           borderRadius: BorderRadius.circular(8),
@@ -312,8 +382,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 )
                               : null,
                         ),
+                        child: item.imageUrl.isEmpty 
+                          ? const Icon(Icons.image, color: AppColors.lightGray) 
+                          : null,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 16),
                       // Details
                       Expanded(
                         child: Column(
@@ -323,10 +396,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               item.productName,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
+                                color: AppColors.ultraLight,
+                                fontSize: 15,
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text('${item.quantity} x ${item.formattedPrice}'),
+                            Text(
+                              '${item.quantity} x ${item.formattedPrice}',
+                              style: const TextStyle(color: AppColors.lightGray),
+                            ),
                           ],
                         ),
                       ),
@@ -336,33 +414,43 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         children: [
                           Text(
                             item.formattedSubtotal,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.ultraLight),
                           ),
+                          const SizedBox(height: 8),
+                          // Rating Button Logic
                           if (isDelivered && !hasRated)
-                            TextButton(
-                              onPressed: () => _showRatingDialog(item),
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: const Size(50, 30),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            SizedBox(
+                              height: 32,
+                              child: ElevatedButton(
+                                onPressed: () => _showRatingDialog(item),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.accentGold,
+                                  foregroundColor: AppColors.primaryBlack,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                                child: const Text('Rate'),
                               ),
-                              child: const Text('Rate'),
                             )
                           else if (hasRated)
-                            const Padding(
-                              padding: EdgeInsets.only(top: 4),
-                              child: Row(
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.successGreen.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: AppColors.successGreen.withOpacity(0.3)),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    Icons.check,
-                                    size: 14,
-                                    color: AppColors.successGreen,
-                                  ),
+                                  Icon(Icons.check, size: 12, color: AppColors.successGreen),
+                                  SizedBox(width: 4),
                                   Text(
                                     'Rated',
                                     style: TextStyle(
                                       color: AppColors.successGreen,
-                                      fontSize: 12,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ],
@@ -375,16 +463,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 );
               },
             ),
-            const Divider(),
+            const Divider(color: AppColors.accentGray),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Total Amount', style: AppTextStyles.headingMedium),
                   Text(
                     _order!.formattedTotalPrice,
-                    style: AppTextStyles.productPrice.copyWith(fontSize: 20),
+                    style: AppTextStyles.productPrice.copyWith(fontSize: 22),
                   ),
                 ],
               ),
