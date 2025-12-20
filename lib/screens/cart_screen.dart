@@ -5,6 +5,10 @@ import '../models/cart_item.dart';
 import '../utils/constants.dart';
 import '../utils/styles.dart';
 import 'checkout_screen.dart';
+import 'home.dart';
+import 'order_list_screen.dart';
+import 'profile_screen.dart';
+import 'stores/store.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -161,6 +165,70 @@ class _CartScreenState extends State<CartScreen> {
                 _buildSummarySection(),
               ],
             ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: AppColors.secondaryBlack,
+        selectedItemColor: AppColors.accentGold,
+        unselectedItemColor: AppColors.lightGray,
+        currentIndex: 2,
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+            tooltip: 'Home',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.store),
+            label: 'Stores',
+            tooltip: 'Store Locator',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+            tooltip: 'Shopping Cart',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long),
+            label: 'Orders',
+            tooltip: 'My Orders',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+            tooltip: 'My Profile',
+          ),
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+              break;
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const StoreLocatorScreen()),
+              );
+              break;
+            case 2:
+              break;
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const OrderListScreen()),
+              );
+              break;
+            case 4:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
+              break;
+          }
+        },
+      ),
     );
   }
 

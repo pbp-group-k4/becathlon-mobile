@@ -111,7 +111,6 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _handleLogout() async {
     final request = context.read<CookieRequest>();
-    // ... (keep your existing logout logic)
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -215,14 +214,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Helper to build the Filter Row with ChoiceChips
   Widget _buildFilterSection() {
     return Container(
       color: AppColors.secondaryBlack,
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Search Bar
           TextField(
             controller: _searchController,
             decoration: InputDecoration(
@@ -250,12 +247,10 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 12),
 
-          // Horizontal Scrollable Filter Row
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                // "All" Category Chip
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(
@@ -286,7 +281,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
 
-                // Dynamic Categories
                 ..._categories.map((category) {
                   final isSelected = _selectedCategory == category;
                   return Padding(
@@ -328,7 +322,6 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(width: 8),
 
-                // Sort Button
                 ActionChip(
                   avatar: const Icon(Icons.sort, size: 18),
                   label: Text(
@@ -342,7 +335,6 @@ class _HomePageState extends State<HomePage> {
 
                 const SizedBox(width: 8),
 
-                // In Stock Filter
                 FilterChip(
                   label: const Text('In Stock'),
                   selected: _inStockOnly,
@@ -372,12 +364,10 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Note: No standard appBar here. It is inside the CustomScrollView.
       body: RefreshIndicator(
         onRefresh: _loadProducts,
         child: CustomScrollView(
           slivers: [
-            // 1. The Sliver App Bar (Floats and snaps)
             SliverAppBar(
               title: Text('BECATHLON', style: AppTextStyles.appBarTitle),
               centerTitle: true,
@@ -386,47 +376,7 @@ class _HomePageState extends State<HomePage> {
               pinned: false,
               backgroundColor: AppColors.secondaryBlack.withOpacity(0.95),
               elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.store),
-                tooltip: 'Store Locator',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const StoreLocatorScreen()),
-                  );
-                },
-              ),
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.person),
-                  tooltip: 'Profile',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ProfilePage()),
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.shopping_cart),
-                  tooltip: 'Cart',
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const CartScreen()),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.receipt_long),
-                  tooltip: 'My Orders',
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const OrderListScreen()),
-                  ),
-                ),
                 IconButton(
                   icon: const Icon(Icons.logout),
                   tooltip: 'Logout',
@@ -435,12 +385,10 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
 
-            // 2. Search & Filter Section
             SliverToBoxAdapter(
               child: _buildFilterSection(),
             ),
 
-            // 3. Recommendation Section (Only visible on main view)
             if (_searchController.text.isEmpty && _selectedCategory == null)
               const SliverToBoxAdapter(
                 child: Padding(
@@ -451,7 +399,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
 
-            // 4. Content State Handling (Loading / Error / Empty / Grid)
             if (_isLoading)
               SliverFillRemaining(
                 child: AppWidgets.loadingIndicator(message: 'Loading products...'),
@@ -480,7 +427,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               )
             else
-              // 5. The Product Grid
               SliverPadding(
                 padding: const EdgeInsets.all(16),
                 sliver: SliverGrid(
@@ -504,6 +450,70 @@ class _HomePageState extends State<HomePage> {
               ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: AppColors.secondaryBlack,
+        selectedItemColor: AppColors.accentGold,
+        unselectedItemColor: AppColors.lightGray,
+        currentIndex: 0,
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+            tooltip: 'Home',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.store),
+            label: 'Stores',
+            tooltip: 'Store Locator',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+            tooltip: 'Shopping Cart',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long),
+            label: 'Orders',
+            tooltip: 'My Orders',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+            tooltip: 'My Profile',
+          ),
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              break;
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const StoreLocatorScreen()),
+              );
+              break;
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartScreen()),
+              );
+              break;
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const OrderListScreen()),
+              );
+              break;
+            case 4:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
+              break;
+          }
+        },
       ),
     );
   }

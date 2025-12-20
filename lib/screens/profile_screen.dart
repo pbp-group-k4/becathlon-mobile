@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 import '../models/profile.dart';
 import '../utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'home.dart';
+import 'cart_screen.dart';
+import 'order_list_screen.dart';
+import 'stores/store.dart';
 
 class ProfileService {
   Future<Profile?> fetchProfile(BuildContext context) async {
@@ -143,7 +147,6 @@ class _ProfilePageState extends State<ProfilePage> {
           key: _formKey,
           child: Column(
             children: [
-              // Circular avatar icon
               CircleAvatar(
                 radius: 48,
                 backgroundColor: Colors.grey.shade300,
@@ -194,7 +197,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 16),
 
-              // Newsletter toggle
               SwitchListTile(
                 title: Text("Subscribe to newsletter",
                     style: AppTextStyles.bodyPrimary),
@@ -227,10 +229,74 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
       ),
+
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: AppColors.secondaryBlack,
+        selectedItemColor: AppColors.accentGold,
+        unselectedItemColor: AppColors.lightGray,
+        currentIndex: 4,
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+            tooltip: 'Home',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.store),
+            label: 'Stores',
+            tooltip: 'Store Locator',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+            tooltip: 'Shopping Cart',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long),
+            label: 'Orders',
+            tooltip: 'My Orders',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+            tooltip: 'My Profile',
+          ),
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+              break;
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const StoreLocatorScreen()),
+              );
+              break;
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartScreen()),
+              );
+              break;
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const OrderListScreen()),
+              );
+              break;
+            case 4:
+              break;
+          }
+        },
+      ),
     );
   }
 
-  // Modern input field builder
   Widget _buildInput({
     required String label,
     required TextEditingController controller,

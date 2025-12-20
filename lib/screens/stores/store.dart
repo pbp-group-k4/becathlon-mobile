@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart'; // NEW: For the Map
 import 'package:latlong2/latlong.dart'; // NEW: For Coordinates
 import 'package:url_launcher/url_launcher.dart';
+import 'package:becathlon_mobile/utils/styles.dart';
+import '../home.dart';
+import '../cart_screen.dart';
+import '../order_list_screen.dart';
+import '../profile_screen.dart';
 
 class Store {
   final int id;
@@ -81,6 +86,70 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: AppColors.secondaryBlack,
+        selectedItemColor: AppColors.accentGold,
+        unselectedItemColor: AppColors.lightGray,
+        currentIndex: 1,
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+            tooltip: 'Home',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.store),
+            label: 'Stores',
+            tooltip: 'Store Locator',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+            tooltip: 'Shopping Cart',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long),
+            label: 'Orders',
+            tooltip: 'My Orders',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+            tooltip: 'My Profile',
+          ),
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+              break;
+            case 1:
+              break;
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartScreen()),
+              );
+              break;
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const OrderListScreen()),
+              );
+              break;
+            case 4:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
+              break;
+          }
+        },
       ),
     );
   }
