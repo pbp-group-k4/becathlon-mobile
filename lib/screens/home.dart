@@ -11,9 +11,8 @@ import 'order_list_screen.dart';
 import 'product_detail_screen.dart';
 import 'profile_screen.dart';
 import 'stores/store.dart';
-import 'recommendations/recommendation_section.dart';
+import 'recommendations/recommendation_section.dart'; 
 
-/// Home page with product grid display
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -112,7 +111,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _handleLogout() async {
     final request = context.read<CookieRequest>();
-
+    // ... (keep your existing logout logic)
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -135,13 +134,10 @@ class _HomePageState extends State<HomePage> {
 
     try {
       final response = await request.logout(ApiConstants.logoutEndpoint);
-
       if (!mounted) return;
-
       if (response['status'] == true) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(AppWidgets.successSnackBar('Logged out successfully'));
+        ScaffoldMessenger.of(context).showSnackBar(
+            AppWidgets.successSnackBar('Logged out successfully'));
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -219,272 +215,295 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.store),
-          tooltip: 'Store Locator',
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const StoreLocatorScreen()),
-            );
-          },
-        ),
-        title: Text('BECATHLON', style: AppTextStyles.appBarTitle),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            tooltip: 'Profile',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfilePage()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            tooltip: 'Cart',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const CartScreen()),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.receipt_long),
-            tooltip: 'My Orders',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const OrderListScreen()),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: _handleLogout,
-          ),
-],
-      ),
-      body: Column(
+  // Helper to build the Filter Row with ChoiceChips
+  Widget _buildFilterSection() {
+    return Container(
+      color: AppColors.secondaryBlack,
+      padding: const EdgeInsets.all(16),
+      child: Column(
         children: [
-          // Search and Filter Section
-          Container(
-            color: AppColors.secondaryBlack,
-            padding: const EdgeInsets.all(16),
-            child: Column(
+          // Search Bar
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Search products...',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                        _loadProducts();
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: AppColors.accentGray,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+            textInputAction: TextInputAction.search,
+            onSubmitted: (_) => _handleSearch(),
+            onChanged: (value) => setState(() {}),
+          ),
+          const SizedBox(height: 12),
+
+          // Horizontal Scrollable Filter Row
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
               children: [
-                // Search Bar
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search products...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              _loadProducts();
-                            },
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: AppColors.accentGray,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                // "All" Category Chip
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: const Text('All'),
+                    selected: _selectedCategory == null,
+                    onSelected: (selected) {
+                      if (selected) {
+                        setState(() => _selectedCategory = null);
+                        _loadProducts();
+                      }
+                    },
+                    selectedColor: AppColors.accentGold,
+                    backgroundColor: AppColors.accentGray,
+                    labelStyle: TextStyle(
+                      color: _selectedCategory == null
+                          ? AppColors.primaryBlack
+                          : AppColors.ultraLight,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(
+                        color: _selectedCategory == null
+                            ? AppColors.accentGold
+                            : AppColors.subtleBorder,
+                      ),
                     ),
                   ),
-                  textInputAction: TextInputAction.search,
-                  onSubmitted: (_) => _handleSearch(),
-                  onChanged: (value) => setState(() {}),
                 ),
 
-                const SizedBox(height: 12),
-
-                // Filter Row
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      if (_categories.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: DropdownButtonHideUnderline(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _selectedCategory != null
-                                    ? AppColors.accentGoldLight
-                                    : AppColors.accentGray,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: _selectedCategory != null
-                                      ? AppColors.accentGold
-                                      : AppColors.subtleBorder,
-                                ),
-                              ),
-                              child: DropdownButton<String>(
-                                value: _selectedCategory,
-                                hint: Text(
-                                  'Category',
-                                  style: AppTextStyles.bodySecondary,
-                                ),
-                                icon: const Icon(
-                                  Icons.arrow_drop_down,
-                                  color: AppColors.lightGray,
-                                ),
-                                dropdownColor: AppColors.secondaryBlack,
-                                items: [
-                                  DropdownMenuItem(
-                                    value: null,
-                                    child: Text(
-                                      'All Categories',
-                                      style: AppTextStyles.bodyPrimary,
-                                    ),
-                                  ),
-                                  ..._categories.map(
-                                    (category) => DropdownMenuItem(
-                                      value: category,
-                                      child: Text(
-                                        category,
-                                        style: AppTextStyles.bodyPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                                onChanged: (value) {
-                                  setState(() => _selectedCategory = value);
-                                  _loadProducts();
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-
-                      ActionChip(
-                        avatar: const Icon(Icons.sort, size: 18),
-                        label: Text(
-                          SortOptions.displayNames[_selectedSort] ?? 'Sort',
-                        ),
-                        onPressed: _showSortOptions,
+                // Dynamic Categories
+                ..._categories.map((category) {
+                  final isSelected = _selectedCategory == category;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(category),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          _selectedCategory = selected ? category : null;
+                        });
+                        _loadProducts();
+                      },
+                      selectedColor: AppColors.accentGold,
+                      backgroundColor: AppColors.accentGray,
+                      labelStyle: TextStyle(
+                        color: isSelected
+                            ? AppColors.primaryBlack
+                            : AppColors.ultraLight,
+                        fontWeight: FontWeight.w600,
                       ),
-
-                      const SizedBox(width: 8),
-
-                      FilterChip(
-                        label: const Text('In Stock'),
-                        selected: _inStockOnly,
-                        onSelected: (selected) {
-                          setState(() => _inStockOnly = selected);
-                          _loadProducts();
-                        },
-                      ),
-
-                      if (_selectedCategory != null ||
-                          _inStockOnly ||
-                          _selectedSort != SortOptions.newest ||
-                          _searchController.text.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: ActionChip(
-                            avatar: const Icon(Icons.clear, size: 18),
-                            label: const Text('Clear'),
-                            onPressed: _clearFilters,
-                          ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(
+                          color: isSelected
+                              ? AppColors.accentGold
+                              : AppColors.subtleBorder,
                         ),
-                    ],
+                      ),
+                    ),
+                  );
+                }),
+
+                const SizedBox(width: 8),
+                Container(
+                  width: 1,
+                  height: 24,
+                  color: AppColors.lightGray.withOpacity(0.3),
+                ),
+                const SizedBox(width: 8),
+
+                // Sort Button
+                ActionChip(
+                  avatar: const Icon(Icons.sort, size: 18),
+                  label: Text(
+                      SortOptions.displayNames[_selectedSort] ?? 'Sort'),
+                  onPressed: _showSortOptions,
+                  backgroundColor: AppColors.accentGray,
+                  labelStyle: const TextStyle(color: AppColors.ultraLight),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                ),
+
+                const SizedBox(width: 8),
+
+                // In Stock Filter
+                FilterChip(
+                  label: const Text('In Stock'),
+                  selected: _inStockOnly,
+                  onSelected: (selected) {
+                    setState(() => _inStockOnly = selected);
+                    _loadProducts();
+                  },
+                  selectedColor: AppColors.accentGold.withOpacity(0.2),
+                  checkmarkColor: AppColors.accentGold,
+                  backgroundColor: AppColors.accentGray,
+                  labelStyle: TextStyle(
+                    color: _inStockOnly
+                        ? AppColors.accentGold
+                        : AppColors.ultraLight,
                   ),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
                 ),
               ],
             ),
           ),
-
-          Expanded(child: _buildProductContent()),
         ],
       ),
     );
   }
 
-  Widget _buildProductContent() {
-    if (_isLoading) {
-      return AppWidgets.loadingIndicator(message: 'Loading products...');
-    }
-
-    if (_error != null) {
-      return AppWidgets.errorState(message: _error!, onRetry: _loadProducts);
-    }
-
-    if (_products.isEmpty) {
-      return AppWidgets.emptyState(
-        title: 'No products found',
-        subtitle: 'Try adjusting your filters or search terms',
-        action:
-            (_selectedCategory != null ||
-                _inStockOnly ||
-                _searchController.text.isNotEmpty)
-            ? TextButton.icon(
-                onPressed: _clearFilters,
-                icon: const Icon(Icons.clear),
-                label: const Text('Clear Filters'),
-              )
-            : null,
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadProducts,
-      child: CustomScrollView(
-        slivers: [
-          // 1. Recommendation Section (Only show on main view, not when searching specific terms)
-          if (_searchController.text.isEmpty && _selectedCategory == null)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.only(top: 16.0),
-                child: RecommendationSection(
-                  title: "Featured For You",
-                  // No category/ID passed, so it fetches general recommendations
-                ),
-              ),
-            ),
-
-          if (_searchController.text.isEmpty && _selectedCategory == null)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
-                child: Text("All Products", style: AppTextStyles.headingMedium),
-              ),
-            ),
-
-          // 2. The Main Product Grid
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.65,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final product = _products[index];
-                  return ProductCard(
-                    product: product,
-                    onTap: () => _handleProductTap(product),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // Note: No standard appBar here. It is inside the CustomScrollView.
+      body: RefreshIndicator(
+        onRefresh: _loadProducts,
+        child: CustomScrollView(
+          slivers: [
+            // 1. The Sliver App Bar (Floats and snaps)
+            SliverAppBar(
+              title: Text('BECATHLON', style: AppTextStyles.appBarTitle),
+              centerTitle: true,
+              floating: true,
+              snap: true,
+              pinned: false,
+              backgroundColor: AppColors.secondaryBlack.withOpacity(0.95),
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.store),
+                tooltip: 'Store Locator',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const StoreLocatorScreen()),
                   );
                 },
-                childCount: _products.length,
               ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.person),
+                  tooltip: 'Profile',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ProfilePage()),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.shopping_cart),
+                  tooltip: 'Cart',
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const CartScreen()),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.receipt_long),
+                  tooltip: 'My Orders',
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const OrderListScreen()),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.logout),
+                  tooltip: 'Logout',
+                  onPressed: _handleLogout,
+                ),
+              ],
             ),
-          ),
-        ],
+
+            // 2. Search & Filter Section
+            SliverToBoxAdapter(
+              child: _buildFilterSection(),
+            ),
+
+            // 3. Recommendation Section (Only visible on main view)
+            if (_searchController.text.isEmpty && _selectedCategory == null)
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.only(top: 16.0),
+                  child: RecommendationSection(
+                    title: "Featured For You",
+                  ),
+                ),
+              ),
+
+            // 4. Content State Handling (Loading / Error / Empty / Grid)
+            if (_isLoading)
+              SliverFillRemaining(
+                child: AppWidgets.loadingIndicator(message: 'Loading products...'),
+              )
+            else if (_error != null)
+              SliverFillRemaining(
+                child: AppWidgets.errorState(
+                  message: _error!,
+                  onRetry: _loadProducts,
+                ),
+              )
+            else if (_products.isEmpty)
+              SliverFillRemaining(
+                child: AppWidgets.emptyState(
+                  title: 'No products found',
+                  subtitle: 'Try adjusting your filters or search terms',
+                  action: (_selectedCategory != null ||
+                          _inStockOnly ||
+                          _searchController.text.isNotEmpty)
+                      ? TextButton.icon(
+                          onPressed: _clearFilters,
+                          icon: const Icon(Icons.clear),
+                          label: const Text('Clear Filters'),
+                        )
+                      : null,
+                ),
+              )
+            else
+              // 5. The Product Grid
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.65,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final product = _products[index];
+                      return ProductCard(
+                        product: product,
+                        onTap: () => _handleProductTap(product),
+                      );
+                    },
+                    childCount: _products.length,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
