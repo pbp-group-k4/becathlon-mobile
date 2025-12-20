@@ -5,10 +5,10 @@ class Order {
   final String deliveryStatusDisplay;
   final double totalPrice;
   final DateTime createdAt;
-  final int itemCount; // For list view
-  final List<OrderItem>? items; // For detail view
-  final ShippingAddress? shippingAddress; // For detail view
-  final List<int>? ratedProductIds; // For detail view
+  final int itemCount;
+  final List<OrderItem>? items;
+  final ShippingAddress? shippingAddress;
+  final List<int>? ratedProductIds; // NEW: Tracks rated items
 
   Order({
     required this.id,
@@ -38,6 +38,7 @@ class Order {
       shippingAddress: json['shipping_address'] != null
           ? ShippingAddress.fromJson(json['shipping_address'])
           : null,
+      // NEW: Parse rated product IDs
       ratedProductIds: json['rated_product_ids'] != null
           ? List<int>.from(json['rated_product_ids'])
           : null,
