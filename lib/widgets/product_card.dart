@@ -93,10 +93,15 @@ class ProductCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          product.formattedPrice,
-                          style: AppTextStyles.productPrice,
+                        // FIX: Wrapped in Flexible to prevent overflow
+                        Flexible(
+                          child: Text(
+                            product.formattedPrice,
+                            style: AppTextStyles.productPrice,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
+                        const SizedBox(width: 4), // Small spacing
                         AppWidgets.stockBadge(inStock: product.isInStock),
                       ],
                     ),
