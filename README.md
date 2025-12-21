@@ -1,11 +1,22 @@
-DEVS: WHEN MAKING A FEATURE, OPEN A PR TO THE WORKING BRANCH AND THEN RESOLVE ALL ISSUES OUTLINED BY CUBIC/OTHER REVIEWERS!
-
----
-
-# becathlon-mobile
+# Becathlon Mobile 🏃‍♂️
 
 > A Flutter-powered mobile storefront backed by a Django REST API, inspired by Decathlon’s polished browsing experience but lightweight. 
 Features include responsive product grids, fast search, filters, and a simplified checkout flow, all optimized for speed and usability.
+
+---
+
+## 📱 Grading Information & Download
+
+**Please use the following resources for grading purposes:**
+
+- **Primary Branch:** `working/stage2` (Latest Features)
+- **Stable Branch:** `main`
+- **APK Download:** You can download the latest installable APK directly from our CI/CD pipeline below.
+
+
+**[APK Install](https://app.bitrise.io/app/bcf20a88-8ca4-4ebd-b7cc-935d04fe86c4/installable-artifacts/af2dc992746b55f5/public-install-page/6def54537488cf1a4bb7fe7a51303456)**
+
+---
 
 ## Team Members
 
@@ -89,9 +100,9 @@ The mobile app transforms the traditional browsing and buying experience into a 
 
 | Role                  | Description                                                  | Permissions                                                                                                                                                                                                                                                                      | Relevant App Modules                                                                                                                                                                                                                          |
 | --------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Guest / Visitor (DEPRECATED)**   | Unregistered users exploring the app.                        | - Browse products and categories<br>- Search and apply filters<br>- Add items to a temporary cart<br>- View product details and read limited reviews                                                                                                                             | `Home & Navigation` (landing pages)<br>`Catalog` (product listings & details)<br>`Search` (search & filtering)<br>`Cart` (local-only cart state)<br>`Recommendations` (basic suggestions)                                                     |
+| **Guest / Visitor (DEPRECATED)** | Unregistered users exploring the app.                        | - Browse products and categories<br>- Search and apply filters<br>- Add items to a temporary cart<br>- View product details and read limited reviews                                                                                                                             | `Home & Navigation` (landing pages)<br>`Catalog` (product listings & details)<br>`Search` (search & filtering)<br>`Cart` (local-only cart state)<br>`Recommendations` (basic suggestions)                                                     |
 | **Client / Customer** | Registered app users with an account.                        | - Everything a guest can do<br>- Login and manage account<br>- Save delivery addresses & preferences<br>- Add to persistent cart (stored via API)<br>- Order and checkout flow<br>- Track order status<br>- Submit reviews and ratings<br>- Receive personalized recommendations | `Authentication` (login, registration)<br>`Profiles` (user info & settings)<br>`Cart` (sync persistent cart)<br>`Checkout` (payment & order placement)<br>`Orders` (order history & tracking)<br>`Recommendations` (personalized suggestions) |
-| **Administrator**     | Backend administrators managing the system via Django Admin. | - Manage users, roles, and authentication<br>- Add/update/remove products<br>- Configure store locations, inventory, payments, and shipping<br>- Review analytics and reports<br>- Moderate user content and refund claims                                                       | Managed through the **Django backend**, reflected in the mobile app via API:<br>- Users & roles<br>- Product catalog & categories<br>- Orders & refunds<br>- Store locations<br>- Platform configuration                                      |
+| **Administrator** | Backend administrators managing the system via Django Admin. | - Manage users, roles, and authentication<br>- Add/update/remove products<br>- Configure store locations, inventory, payments, and shipping<br>- Review analytics and reports<br>- Moderate user content and refund claims                                                       | Managed through the **Django backend**, reflected in the mobile app via API:<br>- Users & roles<br>- Product catalog & categories<br>- Orders & refunds<br>- Store locations<br>- Platform configuration                                      |
 ## Integration with Django backend
 We will use either `PBP Django Auth` module or a traditional REST API with headers to connect the Flutter app with Django backend.
 
