@@ -63,14 +63,7 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
           icon: const Icon(Icons.arrow_back, color: ultraLight),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          'STORE LOCATOR',
-          style: TextStyle(
-            color: ultraLight,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.2,
-          ),
+        title: Text("Store Locator", style: AppTextStyles.appBarTitle
         ),
         centerTitle: true,
       ),
